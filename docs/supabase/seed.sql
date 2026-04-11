@@ -1,0 +1,60 @@
+insert into public.menus (
+  brand,
+  name,
+  price,
+  image_url,
+  release_date,
+  end_date,
+  is_limited,
+  calories,
+  official_link,
+  description
+) values
+  (
+    'mcdonald',
+    '맥스파이시 상하이 버거 (뉴버전)',
+    6900,
+    'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&q=80&auto=format&fit=crop',
+    current_date - interval '5 day',
+    null,
+    false,
+    540,
+    'https://www.mcdonalds.co.kr',
+    '매콤한 치킨 패티와 신선한 채소 조합'
+  ),
+  (
+    'burgerking',
+    '통새우 와퍼 스파이시',
+    8500,
+    'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=1200&q=80&auto=format&fit=crop',
+    current_date - interval '12 day',
+    current_date + interval '40 day',
+    true,
+    730,
+    'https://www.burgerking.co.kr',
+    '통새우와 스파이시 소스가 특징인 한정 메뉴'
+  ),
+  (
+    'lotteria',
+    '리아 불고기 스페셜',
+    6200,
+    'https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200&q=80&auto=format&fit=crop',
+    current_date - interval '28 day',
+    null,
+    false,
+    510,
+    'https://www.lotteeatz.com',
+    '불고기 패티와 특제 소스 조합'
+  ),
+  (
+    'moms',
+    '싸이버거 핫치즈',
+    7400,
+    'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=1200&q=80&auto=format&fit=crop',
+    current_date - interval '2 day',
+    current_date + interval '25 day',
+    true,
+    680,
+    'https://www.momstouch.co.kr',
+    '진한 치즈와 매운맛을 더한 한정 싸이버거'
+  );
