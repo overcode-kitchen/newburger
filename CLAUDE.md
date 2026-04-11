@@ -1,49 +1,10 @@
-@AGENTS.md
+# NewBurger — 에이전트 지침
 
-## 디자인 시스템 & 컴포넌트 원칙
+프로젝트 규칙의 **원본**은 `.cursor/rules/` 아래 MDC 파일이다. Cursor가 이를 로드한다.
 
-### 스택
-- **Tailwind CSS** — 유틸리티 클래스 사용, 인라인 style 속성 금지
-- **shadcn/ui** — 기본 UI는 shadcn 컴포넌트 우선 사용
+| 파일 | 내용 |
+|------|------|
+| `.cursor/rules/nextjs.mdc` | Next.js (`node_modules/next/dist/docs/` 준수) |
+| `.cursor/rules/design-system.mdc` | Tailwind, shadcn, `/design-system`, registry 동기화 |
 
-### 디자인 시스템 라우터
-- 경로: `/design-system`
-- 목적: 디자인 토큰, 컴포넌트 프리뷰, 컴포넌트 인벤토리(자동 스캔) 단일 관리
-
-### 핵심 규칙
-
-**하드코딩 금지**
-- 색상, 간격, 폰트 크기를 임의 값으로 박지 말 것
-- ❌ `text-[14px]` `bg-[#3B82F6]` `mt-[12px]`
-- ✅ `text-sm` `bg-primary` `mt-3`
-
-**컴포넌트 재사용 우선**
-- 버튼, 인풋, 카드 등은 shadcn 컴포넌트 사용
-- 반복되는 UI 패턴은 즉시 컴포넌트로 분리
-- 컴포넌트는 `components/` 디렉토리에 위치
-
-**토큰 기반 스타일링**
-- 색상은 CSS 변수 (`--primary`, `--muted`, `--background` 등) 기준
-- `tailwind.config`에 정의된 커스텀 토큰 활용
-- 새로운 색상이 필요하면 config에 추가 후 사용
-
-**컴포넌트 설계 방식**
-- props로 변형(variant) 처리, 조건부 className 남용 금지
-- `cn()` 유틸로 className 병합
-- 스타일 로직은 컴포넌트 내부에서만 관리
-
-### 디자인 시스템 동기화 명세 (필수)
-컴포넌트가 새로 생기거나 업데이트될 때 아래를 반드시 반영한다.
-
-1) **파일 인벤토리 자동 갱신**
-- `src/components/**/*.tsx` 파일은 디자인 시스템 라우터에서 서버 스캔으로 자동 반영됨
-- 별도 수작업 불필요
-
-2) **시각화 프리뷰 갱신**
-- 프리뷰 목록은 `src/lib/design-system-registry.tsx`에서 관리
-- 새 컴포넌트 추가 시 registry에 항목을 추가하고 `render` 샘플을 작성
-- 기존 컴포넌트 API/스타일 변경 시 registry 프리뷰를 함께 수정
-
-3) **UI 베이스 컴포넌트 우선**
-- `src/components/ui/*`는 가장 먼저 registry에 포함
-- 도메인 컴포넌트(`src/components/*`)는 재사용 빈도가 높거나 시각 변화가 큰 것부터 순차 등록
+다른 도구(Claude Code 등)는 위 경로의 `.mdc`를 직접 열어 동일 내용을 참고하면 된다.
