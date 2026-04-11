@@ -1,3 +1,13 @@
+## NewBurger
+
+뉴버거 서비스 프로젝트입니다.
+
+### Product Documents
+
+- PRD: `docs/NewBurger_PRD.md`
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
