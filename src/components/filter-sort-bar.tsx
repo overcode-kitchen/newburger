@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SortOrderDropdown } from "@/components/sort-order-dropdown";
 import { Button } from "@/components/ui/button";
 import {
   BRANDS,
@@ -27,13 +28,17 @@ export function FilterSortBar({
   selectedBrand,
   selectedSort,
 }: FilterSortBarProps) {
+  const hrefLatest = toHref(selectedBrand, "latest");
+  const hrefPopular = toHref(selectedBrand, "popular");
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-3">
+      <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain touch-pan-x">
+        <div className="flex w-max flex-nowrap items-center justify-start gap-2">
         <Button
           size="sm"
           variant={selectedBrand === "all" ? "default" : "outline"}
-          className={cn("rounded-full")}
+          className={cn("shrink-0 rounded-full")}
           render={<Link href={toHref("all", selectedSort)} />}
         >
           전체
@@ -44,7 +49,7 @@ export function FilterSortBar({
             size="sm"
             variant="outline"
             className={cn(
-              "rounded-full border font-semibold",
+              "shrink-0 rounded-full border font-semibold",
               selectedBrand === brand
                 ? BRAND_CHIP_STYLES[brand].active
                 : BRAND_CHIP_STYLES[brand].inactive,
@@ -63,23 +68,15 @@ export function FilterSortBar({
             </span>
           </Button>
         ))}
+        </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={selectedSort === "latest" ? "default" : "outline"}
-          render={<Link href={toHref(selectedBrand, "latest")} />}
-        >
-          신메뉴순
-        </Button>
-        <Button
-          size="sm"
-          variant={selectedSort === "popular" ? "default" : "outline"}
-          render={<Link href={toHref(selectedBrand, "popular")} />}
-        >
-          인기순
-        </Button>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <SortOrderDropdown
+          selectedSort={selectedSort}
+          hrefLatest={hrefLatest}
+          hrefPopular={hrefPopular}
+        />
       </div>
     </div>
   );

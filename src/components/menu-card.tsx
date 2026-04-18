@@ -7,14 +7,17 @@ import type { MenuWithStats } from "@/types";
 
 interface MenuCardProps {
   menu: MenuWithStats;
+  imageFit?: "cover" | "contain";
+  imagePosition?: "center" | "top";
+  cardAspect?: "3/4" | "4/5";
 }
 
 function MenuCardBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
   return (
     <span
       className={cn(
-        "inline-flex max-w-[min(100%,14rem)] items-center gap-1 rounded-full border border-white/25",
-        "bg-black/35 px-2 py-1 text-xs font-medium text-white/85 backdrop-blur-sm",
+        "inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-black/15 sm:max-w-56",
+        "bg-white/80 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm",
       )}
     >
       <Image
@@ -22,7 +25,7 @@ function MenuCardBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
         alt=""
         width={BRAND_LOGOS[brand].width}
         height={BRAND_LOGOS[brand].height}
-        className="h-3 w-auto shrink-0 opacity-90 brightness-0 invert"
+        className="h-3 w-auto shrink-0 opacity-90"
         aria-hidden
       />
       <span className="truncate">{BRAND_LABELS[brand]}</span>
@@ -30,38 +33,61 @@ function MenuCardBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
   );
 }
 
-export function MenuCard({ menu }: MenuCardProps) {
+export function MenuCard({
+  menu,
+  imageFit = "cover",
+  imagePosition = "center",
+  cardAspect = "3/4",
+}: MenuCardProps) {
   const sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw";
+  const imageSrc = menu.image_url?.trim() ?? "";
+  const hasImage = imageSrc.length > 0;
+  const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";
+  const positionClass = imagePosition === "top" ? "object-top" : "object-center";
+  const aspectClass = cardAspect === "4/5" ? "aspect-[4/5]" : "aspect-[3/4]";
 
   return (
     <Link
       href={`/menu/${menu.id}`}
-      className="group relative block aspect-[3/4] w-full overflow-hidden rounded-3xl shadow-sm ring-1 ring-black/5 transition hover:shadow-md"
+      className={cn(
+        "group relative block w-full overflow-hidden rounded-3xl shadow-sm ring-1 ring-border/60 transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20",
+        aspectClass,
+        imageFit === "contain" && hasImage ? "bg-muted/50" : undefined,
+      )}
     >
-      <Image
-        src={menu.image_url}
-        alt={menu.name}
-        fill
-        sizes={sizes}
-        className="z-0 object-cover"
-        priority={false}
-      />
-
-      <div
-        className="pointer-events-none absolute inset-0 z-10 overflow-hidden mask-gradient-b"
-        aria-hidden
-      >
+      {hasImage ? (
         <Image
-          src={menu.image_url}
-          alt=""
+          src={imageSrc}
+          alt={menu.name}
           fill
           sizes={sizes}
-          className="scale-110 object-cover blur-2xl"
+          className={cn("z-0", fitClass, positionClass)}
+          priority={false}
         />
-      </div>
+      ) : (
+        <div
+          className="absolute inset-0 z-0 bg-muted"
+          aria-hidden
+        />
+      )}
+
+      {hasImage ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-10 overflow-hidden mask-gradient-b"
+          aria-hidden
+        >
+          <Image
+            src={imageSrc}
+            alt=""
+            fill
+            sizes={sizes}
+            className={cn("scale-110 blur-2xl", fitClass, positionClass)}
+          />
+        </div>
+      ) : null}
 
       <div
-        className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-black/35 to-black/78"
+        className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-white/55 to-white/92"
         aria-hidden
       />
 
@@ -70,13 +96,13 @@ export function MenuCard({ menu }: MenuCardProps) {
           {menu.is_limited && (
             <Badge
               variant="outline"
-              className="border-white/45 bg-black/30 text-xs text-white backdrop-blur-sm"
+              className="border-black/20 bg-white/85 text-xs text-foreground backdrop-blur-sm"
             >
               한정
             </Badge>
           )}
           {isNewMenu(menu.release_date) && (
-            <Badge className="border-transparent bg-white/90 text-xs text-foreground">
+            <Badge className="border-black/10 bg-white/95 text-xs text-foreground">
               NEW
             </Badge>
           )}
@@ -85,17 +111,17 @@ export function MenuCard({ menu }: MenuCardProps) {
 
       <div className="absolute bottom-0 left-0 right-0 z-30 space-y-2 p-4 pt-12">
         <MenuCardBrandChip brand={menu.brand} />
-        <h2 className="line-clamp-2 text-[28px] font-bold leading-snug tracking-tight text-white">
+        <h2 className="line-clamp-2 text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-3xl">
           {menu.name}
         </h2>
         {menu.description ? (
-          <p className="line-clamp-2 text-sm leading-relaxed text-white/75">
+          <p className="line-clamp-2 text-sm leading-relaxed text-foreground/80">
             {menu.description}
           </p>
         ) : null}
-        <p className="text-sm text-white/80">
+        <p className="text-sm text-foreground/85">
           ★ {menu.average_rating.toFixed(1)}
-          <span className="ml-1 text-white/65">({menu.review_count})</span>
+          <span className="ml-1 text-muted-foreground">({menu.review_count})</span>
         </p>
       </div>
     </Link>

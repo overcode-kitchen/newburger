@@ -14,7 +14,8 @@ export interface Menu {
   id: string;
   brand: Brand;
   name: string;
-  price: number;
+  price_single: number;
+  price_set: number | null;
   image_url: string;
   release_date: string;
   end_date: string | null;

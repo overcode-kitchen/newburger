@@ -1,7 +1,14 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { MenuCard } from "@/components/menu-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Card,
   CardContent,
@@ -14,7 +21,8 @@ const menuCardPreviewSample: MenuWithStats = {
   id: "00000000-0000-4000-8000-000000000001",
   brand: "burgerking",
   name: "통새우 와퍼 스파이시",
-  price: 8500,
+  price_single: 8500,
+  price_set: 11800,
   image_url:
     "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=1200&q=80&auto=format&fit=crop",
   release_date: "2026-04-09",
@@ -28,6 +36,41 @@ const menuCardPreviewSample: MenuWithStats = {
   average_rating: 4.6,
   review_count: 128,
 };
+
+const menuCardVariantSamples: ReadonlyArray<{
+  label: string;
+  description: string;
+  imageFit?: "cover" | "contain";
+  imagePosition?: "center" | "top";
+  cardAspect?: "3/4" | "4/5";
+}> = [
+  {
+    label: "Standard",
+    description: "cover + center + 3/4 (현재 홈 기본값)",
+  },
+  {
+    label: "Top Focus",
+    description: "cover + top + 3/4 (상단 피사체 노출 강화)",
+    imagePosition: "top",
+  },
+  {
+    label: "Taller",
+    description: "cover + center + 4/5 (세로 공간 확장)",
+    cardAspect: "4/5",
+  },
+  {
+    label: "Contain",
+    description: "contain + center + 3/4 (전체 이미지 우선)",
+    imageFit: "contain",
+  },
+];
+
+const menuDetailInfoSamples: ReadonlyArray<{ label: string; value: string }> = [
+  { label: "단품", value: "8,500원" },
+  { label: "세트", value: "11,800원" },
+  { label: "출시일", value: "2026. 4. 9." },
+  { label: "평균 별점", value: "★ 4.6 (128개)" },
+];
 
 export interface DesignPreviewItem {
   name: string;
@@ -49,6 +92,26 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
         <Button variant="ghost">고스트</Button>
         <Button variant="destructive">삭제</Button>
       </div>
+    ),
+  },
+  {
+    name: "DropdownMenu",
+    sourcePath: "src/components/ui/dropdown-menu.tsx",
+    notes: "Base UI Menu; 트리거 + 링크 항목 예시",
+    render: () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<Button size="sm" variant="outline">열기</Button>}
+        />
+        <DropdownMenuContent align="start" className="min-w-[10rem]">
+          <DropdownMenuLinkItem render={<Link href="#" />}>
+            첫 번째
+          </DropdownMenuLinkItem>
+          <DropdownMenuLinkItem render={<Link href="#" />}>
+            두 번째
+          </DropdownMenuLinkItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     ),
   },
   {
@@ -86,10 +149,54 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
   {
     name: "MenuCard",
     sourcePath: "src/components/menu-card.tsx",
-    notes: "홈 피드용 풀블리드 이미지 + 하단 그라데이션 블러 · 목 데이터",
+    notes: "이미지 크롭 완화 전략(기본/상단 포커스/세로 확장/contain) 비교 프리뷰",
     render: () => (
-      <div className="mx-auto max-w-sm">
-        <MenuCard menu={menuCardPreviewSample} />
+      <div className="grid gap-4 md:grid-cols-2">
+        {menuCardVariantSamples.map((variant) => (
+          <div key={variant.label} className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{variant.label}</p>
+              <p className="text-xs text-muted-foreground">{variant.description}</p>
+            </div>
+            <MenuCard
+              menu={menuCardPreviewSample}
+              imageFit={variant.imageFit}
+              imagePosition={variant.imagePosition}
+              cardAspect={variant.cardAspect}
+            />
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    name: "MenuDetail Patterns",
+    sourcePath: "src/app/menu/[id]/page.tsx",
+    notes: "상세 페이지 정보카드/후기 피드 UI 패턴",
+    render: () => (
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {menuDetailInfoSamples.map((item) => (
+            <Card key={item.label} className="rounded-2xl border-border/70 bg-muted/30">
+              <CardContent className="space-y-1 p-4">
+                <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
+                <p className="text-base font-semibold">{item.value}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card className="rounded-2xl border-border/70 p-4">
+          <div className="mb-2 flex items-center justify-between text-sm">
+            <p className="font-medium">★ 5</p>
+            <p className="text-muted-foreground">2026. 04. 14. 14:22</p>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            소스 조합이 좋아서 재구매 의사가 있는 메뉴라는 예시 후기를 표시합니다.
+          </p>
+          <div className="mt-3">
+            <Badge variant="outline">후기 아이템 예시</Badge>
+          </div>
+        </Card>
       </div>
     ),
   },
