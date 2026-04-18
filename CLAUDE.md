@@ -6,6 +6,6 @@
 |------|------|
 | `.cursor/rules/nextjs.mdc` | Next.js (`node_modules/next/dist/docs/` 준수) |
 | `.cursor/rules/design-system.mdc` | Tailwind, shadcn, `/design-system`, registry 동기화 |
-| `.cursor/rules/git-workflow.mdc` | 커밋 절차, 메시지 종결형·기능별 분리, 승인 후 커밋 |
+| `.cursor/rules/git-workflow.mdc` | 커밋 절차, Conventional Commits·명사형 제목, 기능별 분리, 승인 후 커밋 |
 
 다른 도구(Claude Code 등)는 위 경로의 `.mdc`를 직접 열어 동일 내용을 참고하면 된다.
