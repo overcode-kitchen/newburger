@@ -10,7 +10,13 @@ interface MenuCardProps {
   imageFit?: "cover" | "contain";
   imagePosition?: "center" | "top";
   cardAspect?: "3/4" | "4/5";
+  overlayVariant?: "a" | "c";
 }
+
+const OVERLAY_VARIANT_CLASS: Record<NonNullable<MenuCardProps["overlayVariant"]>, string> = {
+  a: "bg-gradient-to-b from-transparent via-white/30 to-white/80",
+  c: "bg-gradient-to-b from-transparent from-55% via-white/40 via-80% to-white/92",
+};
 
 function MenuCardBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
   return (
@@ -38,6 +44,7 @@ export function MenuCard({
   imageFit = "cover",
   imagePosition = "top",
   cardAspect = "3/4",
+  overlayVariant = "a",
 }: MenuCardProps) {
   const sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw";
   const imageSrc = menu.image_url?.trim() ?? "";
@@ -77,7 +84,10 @@ export function MenuCard({
       )}
 
       <div
-        className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-white/30 to-white/80"
+        className={cn(
+          "pointer-events-none absolute inset-0 z-20",
+          OVERLAY_VARIANT_CLASS[overlayVariant],
+        )}
         aria-hidden
       />
 

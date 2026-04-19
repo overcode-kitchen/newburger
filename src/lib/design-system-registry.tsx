@@ -40,28 +40,17 @@ const menuCardPreviewSample: MenuWithStats = {
 const menuCardVariantSamples: ReadonlyArray<{
   label: string;
   description: string;
-  imageFit?: "cover" | "contain";
-  imagePosition?: "center" | "top";
-  cardAspect?: "3/4" | "4/5";
+  overlayVariant: "a" | "c";
 }> = [
   {
-    label: "Standard",
-    description: "cover + center + 3/4 (현재 홈 기본값)",
+    label: "A — 전영역 그라데이션 (현재 적용)",
+    description: "from-transparent via-white/30 to-white/80 · 중단부터 은은하게 흰 막이 쌓임",
+    overlayVariant: "a",
   },
   {
-    label: "Top Focus",
-    description: "cover + top + 3/4 (상단 피사체 노출 강화)",
-    imagePosition: "top",
-  },
-  {
-    label: "Taller",
-    description: "cover + center + 4/5 (세로 공간 확장)",
-    cardAspect: "4/5",
-  },
-  {
-    label: "Contain",
-    description: "contain + center + 3/4 (전체 이미지 우선)",
-    imageFit: "contain",
+    label: "C — 하단 집중 그라데이션",
+    description: "from-transparent from-55% via-white/40 via-80% to-white/92 · 상단은 완전 선명, 하단 45%에만 흰 막",
+    overlayVariant: "c",
   },
 ];
 
@@ -149,7 +138,7 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
   {
     name: "MenuCard",
     sourcePath: "src/components/menu-card.tsx",
-    notes: "이미지 크롭 완화 전략(기본/상단 포커스/세로 확장/contain) 비교 프리뷰",
+    notes: "하단 텍스트 가독성용 z-20 흰 그라데이션 변형 비교 프리뷰 (A = 현재 적용 / C = 하단 집중)",
     render: () => (
       <div className="grid gap-4 md:grid-cols-2">
         {menuCardVariantSamples.map((variant) => (
@@ -160,9 +149,7 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
             </div>
             <MenuCard
               menu={menuCardPreviewSample}
-              imageFit={variant.imageFit}
-              imagePosition={variant.imagePosition}
-              cardAspect={variant.cardAspect}
+              overlayVariant={variant.overlayVariant}
             />
           </div>
         ))}
