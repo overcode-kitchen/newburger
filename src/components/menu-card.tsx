@@ -36,7 +36,7 @@ function MenuCardBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
 export function MenuCard({
   menu,
   imageFit = "cover",
-  imagePosition = "center",
+  imagePosition = "top",
   cardAspect = "3/4",
 }: MenuCardProps) {
   const sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw";
@@ -52,7 +52,7 @@ export function MenuCard({
       className={cn(
         "group relative block w-full overflow-hidden rounded-3xl shadow-sm ring-1 ring-border/60 transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20",
         aspectClass,
-        imageFit === "contain" && hasImage ? "bg-muted/50" : undefined,
+        imageFit === "contain" && hasImage ? "bg-menu-image-matte" : undefined,
       )}
     >
       {hasImage ? (
@@ -61,7 +61,12 @@ export function MenuCard({
           alt={menu.name}
           fill
           sizes={sizes}
-          className={cn("z-0", fitClass, positionClass)}
+          className={cn(
+            "z-0",
+            fitClass,
+            positionClass,
+            imageFit === "contain" ? "bg-menu-image-matte" : undefined,
+          )}
           priority={false}
         />
       ) : (
@@ -81,7 +86,12 @@ export function MenuCard({
             alt=""
             fill
             sizes={sizes}
-            className={cn("scale-110 blur-2xl", fitClass, positionClass)}
+            className={cn(
+              "scale-110 blur-2xl",
+              fitClass,
+              positionClass,
+              imageFit === "contain" ? "bg-menu-image-matte" : undefined,
+            )}
           />
         </div>
       ) : null}
