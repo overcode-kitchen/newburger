@@ -76,28 +76,8 @@ export function MenuCard({
         />
       )}
 
-      {hasImage ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-10 overflow-hidden mask-gradient-b"
-          aria-hidden
-        >
-          <Image
-            src={imageSrc}
-            alt=""
-            fill
-            sizes={sizes}
-            className={cn(
-              "scale-110 blur-2xl",
-              fitClass,
-              positionClass,
-              imageFit === "contain" ? "bg-menu-image-matte" : undefined,
-            )}
-          />
-        </div>
-      ) : null}
-
       <div
-        className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-white/55 to-white/92"
+        className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-b from-transparent via-white/30 to-white/80"
         aria-hidden
       />
 

@@ -142,25 +142,3 @@
     @apply bg-primary/20 text-foreground;
   }
 }
-
-/* Menu card: blurred image layer fades in toward the bottom */
-@layer utilities {
-  .mask-gradient-b {
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgb(0 0 0 / 55%) 52%,
-      rgb(0 0 0 / 100%) 100%
-    );
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgb(0 0 0 / 55%) 52%,
-      rgb(0 0 0 / 100%) 100%
-    );
-    mask-size: 100% 100%;
-    -webkit-mask-size: 100% 100%;
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-  }
-}
