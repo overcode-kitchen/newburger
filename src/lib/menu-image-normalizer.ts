@@ -26,6 +26,15 @@ const DEFAULT_CONFIG: NormalizeConfig = {
   yOffsetRatio: 0,
 };
 
+const DEFAULT_MATT_RGBA = { r: 247, g: 243, b: 237, alpha: 1 };
+
+function matteRgbaFromHex(hex: string): { r: number; g: number; b: number; alpha: number } {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return DEFAULT_MATT_RGBA;
+  const n = Number.parseInt(m[1], 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255, alpha: 1 };
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -50,8 +59,11 @@ export async function normalizeImageBuffer(
   override: Partial<NormalizeConfig> = {},
 ): Promise<Buffer> {
   const config: NormalizeConfig = { ...DEFAULT_CONFIG, ...override };
+  const bg = matteRgbaFromHex(config.background);
 
-  const trimmed = sharp(Buffer.from(sourceBuffer)).ensureAlpha().trim();
+  const trimmed = sharp(Buffer.from(sourceBuffer))
+    .ensureAlpha()
+    .trim({ background: "#000000", threshold: 10 });
   const trimmedMeta = await trimmed.metadata();
   if (!trimmedMeta.width || !trimmedMeta.height) {
     throw new Error("이미지 메타데이터를 읽지 못했습니다.");
@@ -101,7 +113,7 @@ export async function normalizeImageBuffer(
       width: config.canvasWidth,
       height: config.canvasHeight,
       channels: 4,
-      background: config.background,
+      background: bg,
     },
   })
     .composite([{ input: safeResizedBuffer, left: x, top: y }])
@@ -109,9 +121,11 @@ export async function normalizeImageBuffer(
     .toBuffer();
 }
 
-export async function normalizeFromStorageAndSync(
-  rawPath: string,
-): Promise<{ normalizedPath: string; updatedRows: number }> {
+/** raw Storage 경로의 이미지를 정규화해 `normalized/...webp`로만 업로드합니다. DB는 수정하지 않습니다. */
+export async function normalizeFromStorage(rawPath: string): Promise<{
+  normalizedPath: string;
+  normalizedPublicUrl: string;
+}> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "menu-images";
@@ -132,7 +146,9 @@ export async function normalizeFromStorageAndSync(
     throw new Error(`원본 다운로드 실패(${rawPath}): ${downloadError?.message}`);
   }
 
-  const normalizedBuffer = await normalizeImageBuffer(await rawData.arrayBuffer());
+  const normalizedBuffer = await normalizeImageBuffer(await rawData.arrayBuffer(), {
+    background: "#FFFFFF",
+  });
 
   const { error: uploadError } = await admin.storage
     .from(bucket)
@@ -145,28 +161,6 @@ export async function normalizeFromStorageAndSync(
     throw new Error(`정규화본 업로드 실패(${normalizedPath}): ${uploadError.message}`);
   }
 
-  const rawPublicUrl = buildPublicUrl(supabaseUrl, bucket, rawPath);
   const normalizedPublicUrl = buildPublicUrl(supabaseUrl, bucket, normalizedPath);
-  const { data: menus, error: selectError } = await admin
-    .from("menus")
-    .select("id,image_url")
-    .eq("image_url", rawPublicUrl);
-
-  if (selectError) {
-    throw new Error(`menus 조회 실패: ${selectError.message}`);
-  }
-
-  let updatedRows = 0;
-  for (const menu of menus ?? []) {
-    const { error: updateError } = await admin
-      .from("menus")
-      .update({ image_url: normalizedPublicUrl })
-      .eq("id", menu.id);
-    if (updateError) {
-      throw new Error(`menus 업데이트 실패(${menu.id}): ${updateError.message}`);
-    }
-    updatedRows += 1;
-  }
-
-  return { normalizedPath, updatedRows };
+  return { normalizedPath, normalizedPublicUrl };
 }

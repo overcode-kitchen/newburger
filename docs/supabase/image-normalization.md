@@ -77,4 +77,4 @@ pnpm normalize:menu-images -- --upload
 
 1. `raw/...` 업로드 이벤트 수신
 2. 정규화 이미지 생성 후 `normalized/...`에 업로드
-3. `menus.image_url`가 해당 raw public URL인 레코드를 normalized public URL로 자동 교체
+3. 웹훅 JSON 응답의 `normalizedPublicUrl`을 복사해 `menus.image_url`에 수동 반영(테이블 자동 갱신 없음)

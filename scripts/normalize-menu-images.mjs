@@ -42,6 +42,15 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+const DEFAULT_MATT_RGBA = { r: 247, g: 243, b: 237, alpha: 1 };
+
+function matteRgbaFromHex(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+  if (!m) return DEFAULT_MATT_RGBA;
+  const n = Number.parseInt(m[1], 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255, alpha: 1 };
+}
+
 function sanitizePathPart(value) {
   return value.replace(/[^a-zA-Z0-9_-]/g, "-").toLowerCase();
 }
@@ -68,7 +77,9 @@ async function normalizeImage(sourceBuffer, config) {
     yOffsetRatio,
   } = config;
 
-  const trimmed = sharp(sourceBuffer).ensureAlpha().trim();
+  const trimmed = sharp(sourceBuffer)
+    .ensureAlpha()
+    .trim({ background: "#000000", threshold: 10 });
   const trimmedMeta = await trimmed.metadata();
   if (!trimmedMeta.width || !trimmedMeta.height) {
     throw new Error("이미지 메타데이터를 읽을 수 없습니다.");
@@ -88,7 +99,7 @@ async function normalizeImage(sourceBuffer, config) {
   const resizedWidth = Math.max(1, Math.round(baseWidth * scale));
   const resizedHeight = Math.max(1, Math.round(baseHeight * scale));
   const resized = await trimmed
-    .resize(resizedWidth, resizedHeight, { fit: "contain" })
+    .resize(resizedWidth, resizedHeight, { fit: "contain", background: "#FFFFFF" })
     .toBuffer();
   const resizedMeta = await sharp(resized).metadata();
   const safeWidth = Math.min(canvasWidth, resizedMeta.width ?? resizedWidth);
@@ -112,12 +123,14 @@ async function normalizeImage(sourceBuffer, config) {
   const yWithOffset = anchorY + Math.round(canvasHeight * yOffsetRatio);
   const y = clamp(yWithOffset, 0, Math.max(0, canvasHeight - safeHeight));
 
+  const bg = matteRgbaFromHex(background);
+
   const outputBuffer = await sharp({
     create: {
       width: canvasWidth,
       height: canvasHeight,
       channels: 4,
-      background,
+      background: bg,
     },
   })
     .composite([{ input: safeResized, left: x, top: y }])

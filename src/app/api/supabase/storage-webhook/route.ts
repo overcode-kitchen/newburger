@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { normalizeFromStorageAndSync } from "@/lib/menu-image-normalizer";
+import { normalizeFromStorage } from "@/lib/menu-image-normalizer";
 
 interface StorageWebhookPayload {
   type?: string;
@@ -42,12 +42,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await normalizeFromStorageAndSync(objectPath);
+    const result = await normalizeFromStorage(objectPath);
     return NextResponse.json({
       ok: true,
       rawPath: objectPath,
       normalizedPath: result.normalizedPath,
-      updatedRows: result.updatedRows,
+      normalizedPublicUrl: result.normalizedPublicUrl,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
