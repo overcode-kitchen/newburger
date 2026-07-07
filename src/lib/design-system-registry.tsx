@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { MenuCard } from "@/components/menu-card";
+import { ErrorState } from "@/components/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -133,6 +134,18 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
           </div>
         </CardContent>
       </Card>
+    ),
+  },
+  {
+    name: "ErrorState",
+    sourcePath: "src/components/error-state.tsx",
+    notes: "error.tsx 공용. 빈 상태 블록과 동일한 시각 언어(점선·muted). 재시도 버튼은 onRetry 전달 시에만 노출",
+    render: () => (
+      <ErrorState
+        title="페이지를 불러오지 못했어요"
+        description="잠시 후 다시 시도해 주세요. 계속 반복되면 데이터 연결 상태를 확인해 주세요."
+        digest="a1b2c3d4"
+      />
     ),
   },
   {
