@@ -1,8 +1,17 @@
 ---
-description: Next.js — 공식 문서 기준 (이 레포는 일반 Next와 다를 수 있음)
+description: Next.js 15 App Router — 이 레포가 쓰는 컨벤션
 alwaysApply: true
 ---
 
-# This is NOT the Next.js you know
+# Next.js 15.5 · App Router
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+이 레포는 `package.json`에 고정된 Next 버전을 따른다. 학습된 관례와 다를 수 있으니 확신이 없으면 해당 버전의 공식 문서(nextjs.org/docs)를 먼저 확인한다. 로컬 `node_modules/next/`에는 문서가 포함되어 있지 않다.
+
+## 이 레포에서 실제로 쓰는 것
+
+- `params` · `searchParams`는 **Promise** — 반드시 `await` 한다.
+- 데이터 쓰기는 **Server Action**(`"use server"`)으로. API Route는 외부 시스템이 호출해야 할 때만 만든다.
+- 데이터 읽기는 서버 컴포넌트에서 직접 Supabase를 호출한다 (`src/lib/menu-data.ts`).
+- 라우트별 `error.tsx`(클라이언트 컴포넌트) · `loading.tsx` · `not-found.tsx`를 둔다. 서버 컴포넌트의 예외는 가장 가까운 `error.tsx`가 받는다.
+- 외부 이미지는 `next.config.ts`의 `remotePatterns`에 도메인을 등록해야 `next/image`가 렌더한다. 등록 없이 쓰면 런타임 에러.
+- `NEXT_PUBLIC_*` 환경변수는 **빌드 시 인라인**된다. 값을 바꾸면 다시 빌드해야 한다.
