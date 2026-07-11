@@ -88,11 +88,13 @@ export function formatPrice(price: number): string {
   return `${price.toLocaleString("ko-KR")}원`;
 }
 
-export function formatDate(dateValue: string): string {
+export function formatDate(dateValue: string | null): string {
+  if (!dateValue) return "정보 없음";
   return new Date(dateValue).toLocaleDateString("ko-KR");
 }
 
-export function isNewMenu(releaseDate: string): boolean {
+export function isNewMenu(releaseDate: string | null): boolean {
+  if (!releaseDate) return false;
   const release = new Date(releaseDate).getTime();
   const diff = Date.now() - release;
   return diff >= 0 && diff <= 1000 * 60 * 60 * 24 * 14;
