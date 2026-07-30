@@ -19,6 +19,8 @@ export interface CrawledMenu {
   is_limited: boolean;
   calories: number | null;
   calories_text: string | null;
+  /** 브랜드가 붙인 뱃지 원문 (NEW·BEST …) */
+  badge: string | null;
   is_featured: boolean;
   /** 브랜드 응답 원본. 스키마가 바뀌어도 여기서 꺼내 쓸 수 있게 통째로 보관 */
   raw: Record<string, unknown>;

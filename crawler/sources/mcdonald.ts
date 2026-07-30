@@ -73,6 +73,8 @@ function toMenu(product: McdProduct, categories: string[], slug: string): Crawle
     is_limited: !evergreen,
     calories,
     calories_text,
+    // newIcon 은 현재 항상 빈 값이지만 채워지면 그대로 뱃지로 쓴다
+    badge: stripHtml(typeof product.newIcon === "string" ? product.newIcon : null),
     is_featured: (product.exposureStatus ?? "").split(",").includes("recommend"),
     raw: product,
   };

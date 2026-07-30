@@ -33,6 +33,7 @@ export interface Menu {
   calories: number | null;
   calories_text: string | null;
 
+  badge: string | null;
   is_featured: boolean;
   is_active: boolean;
   first_seen_at: string;

@@ -39,7 +39,8 @@ create table public.menus (
   calories_text  text,                      -- 원문 그대로. 표시용
 
   -- 수집 상태
-  is_featured    boolean not null default false,   -- 브랜드가 "신메뉴"로 노출 중 (맥도날드 exposureStatus=recommend 등)
+  badge          text,                             -- 브랜드가 붙인 뱃지 원문: NEW · BEST 등. 없으면 null
+  is_featured    boolean not null default false,   -- 브랜드가 추천/신메뉴 영역에 노출 중 (맥도날드 recommend, 버거킹·롯데리아 추천메뉴, 맘스터치 New! 탭)
   is_active      boolean not null default true,    -- 최근 수집에서 목록에 존재. 사라지면 false (행은 유지)
   first_seen_at  timestamptz not null default now(),
   last_seen_at   timestamptz not null default now(),

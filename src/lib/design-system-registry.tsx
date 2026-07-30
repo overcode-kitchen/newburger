@@ -37,6 +37,7 @@ const menuCardPreviewSample: MenuWithStats = {
   is_limited: true,
   calories: 730,
   calories_text: "730",
+  badge: "NEW",
   is_featured: true,
   is_active: true,
   first_seen_at: "2026-04-09T00:00:00.000Z",
