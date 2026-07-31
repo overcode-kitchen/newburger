@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
         hostname: "www.mcdonalds.co.kr",
         pathname: "/upload/**",
       },
+      // 버거킹 — 트랜잭션 API 의 menuImgPath 호스트
+      {
+        protocol: "https",
+        hostname: "mob-prd.burgerking.co.kr",
+        pathname: "/images/**",
+      },
+      // 롯데리아 (롯데잇츠)
+      {
+        protocol: "https",
+        hostname: "img.lotteeatz.com",
+        pathname: "/upload/**",
+      },
       // 맘스터치
       {
         protocol: "https",

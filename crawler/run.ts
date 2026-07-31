@@ -1,5 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
+import { burgerking } from "./sources/burgerking";
+import { lotteria } from "./sources/lotteria";
 import { mcdonald } from "./sources/mcdonald";
+import { momstouch } from "./sources/momstouch";
 import { createAdminClient, syncBrand } from "./sync";
 import type { Brand, BrandSource } from "./types";
 
@@ -13,7 +16,7 @@ function loadEnvFile(path: string) {
   }
 }
 
-const SOURCES: ReadonlyArray<BrandSource> = [mcdonald];
+const SOURCES: ReadonlyArray<BrandSource> = [mcdonald, burgerking, lotteria, momstouch];
 
 async function main() {
   loadEnvFile(".env.local");
