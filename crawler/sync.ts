@@ -1,6 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Brand, CrawledMenu } from "./types";
 
+/** 기존 활성 건수 대비 이 비율 미만이면 파서 손상으로 보고 반영하지 않는다 */
+const MIN_SURVIVAL_RATIO = 0.5;
+
 export interface SyncResult {
   brand: Brand;
   seen: number;
@@ -44,6 +47,16 @@ export async function syncBrand(
     if (existingError) throw new Error(`기존 목록 조회 실패: ${existingError.message}`);
 
     const existing = new Map((existingRows ?? []).map((r) => [r.source_id as string, r.is_active as boolean]));
+    const existingActive = [...existing.values()].filter(Boolean).length;
+
+    // 파서가 깨져 목록이 텅 비거나 급감하면 전 메뉴가 비활성으로 쓸려 나간다.
+    // 무인 실행에서 가장 위험한 실패라, 반영하지 않고 실패로 기록한다.
+    if (existingActive > 0 && items.length < existingActive * MIN_SURVIVAL_RATIO) {
+      throw new Error(
+        `수집 ${items.length}건 < 기존 활성 ${existingActive}건의 ${MIN_SURVIVAL_RATIO * 100}% — 파서 손상 의심, 반영 중단`,
+      );
+    }
+
     const seenIds = new Set(items.map((m) => m.source_id));
     const created = items.filter((m) => !existing.has(m.source_id)).length;
 

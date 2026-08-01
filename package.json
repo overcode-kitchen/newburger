@@ -2,6 +2,7 @@
   "name": "newburger",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.34.5",
   "scripts": {
     "clean": "rm -rf .next",
     "dev": "next dev",

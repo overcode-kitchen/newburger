@@ -1,0 +1,40 @@
+name: 메뉴 수집
+
+on:
+  schedule:
+    # GitHub cron 은 UTC. 22:00 UTC = 다음 날 07:00 KST — 매일 아침 수집
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+    inputs:
+      brand:
+        description: "브랜드 하나만 (mcdonald · burgerking · lotteria · moms). 비우면 전체"
+        required: false
+        type: string
+
+# 겹쳐 돌지 않게. 진행 중인 수집은 끊지 않는다
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: 수집 실행
+        run: pnpm crawl ${{ inputs.brand }}
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
