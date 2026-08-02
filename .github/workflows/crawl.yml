@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       brand:
-        description: "브랜드 하나만 (mcdonald · burgerking · lotteria · moms). 비우면 전체"
+        description: "브랜드 하나만 (mcdonald · burgerking · lotteria). 비우면 전체. moms 는 해외 IP 차단으로 러너에서 실패함"
         required: false
         type: string
 

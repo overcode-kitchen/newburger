@@ -18,6 +18,14 @@ pnpm crawl mcdonald     # 하나만 · mcdonald | burgerking | lotteria | moms
 
 `.github/workflows/crawl.yml` 이 **매일 07:00 KST** 에 돈다 (cron 은 UTC 22:00). Actions 탭에서 수동 실행도 가능하며 브랜드 하나만 지정할 수 있다.
 
+**맘스터치는 자동화에서 빠진다.** 국내 IDC 직결 호스팅이 해외 IP 의 연결을 막아 GitHub 러너(미국)에서는 `fetch failed` 가 난다. 소스에 `localOnly: true` 로 표시돼 있어 러너에서는 건너뛰고 로그에 `skipped` 로 남긴다. 한국 IP 에서 가끔 직접 돌린다:
+
+```bash
+pnpm crawl moms
+```
+
+완전 자동화가 필요해지면 한국 리전 self-hosted runner(예: Oracle Cloud 서울 무료 VM)를 붙이고 워크플로의 `runs-on` 만 바꾸면 된다.
+
 켜려면:
 
 1. 저장소 **Settings → Secrets and variables → Actions** 에 위 두 변수를 등록
@@ -32,7 +40,7 @@ pnpm crawl mcdonald     # 하나만 · mcdonald | burgerking | lotteria | moms
 | 맥도날드 | 공개 JSON API (`/api/v1/kor/product/product/list`) | ✗ 미공개 | ✓ | ✓ `openTimeStart/End` | `exposureStatus=recommend` |
 | 버거킹 | bizMOB 트랜잭션 POST (`BKR0632` 목록 + `BKR0634` 상세) | ✓ | ✓ | ✗ | `menuFlagList` NEW · 추천메뉴 |
 | 롯데리아 | `/brand/ria` HTML 파싱 | ✓ | ✗ | ✗ | NEW/BEST 뱃지 · 추천메뉴 |
-| 맘스터치 | `/menu/new.php` HTML 파싱, 8개 카테고리 페이지네이션 | ✗ 주석 처리됨 | ✗ | ✗ | `<i class="new">` · New! 탭 |
+| 맘스터치 | `/menu/new.php` HTML 파싱, 8개 카테고리 페이지네이션 · **로컬 전용** | ✗ 주석 처리됨 | ✗ | ✗ | `<i class="new">` · New! 탭 |
 
 - 전부 **비공식 경로**다. 사이트가 바뀌면 파서가 깨진다. 응답 필드는 방어적으로 읽고, 실패는 `crawl_runs.error` 에 남긴다.
 - 출시일이 없는 브랜드는 `first_seen_at`(처음 목격한 시각)과 `badge` 로 신메뉴를 판단한다.

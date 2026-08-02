@@ -28,5 +28,7 @@ export interface CrawledMenu {
 
 export interface BrandSource {
   brand: Brand;
+  /** 해외 IP 를 차단하는 사이트. GitHub 호스티드 러너에서는 건너뛰고, 로컬이나 이름 지정 시에만 돈다 */
+  localOnly?: boolean;
   crawl: () => Promise<CrawledMenu[]>;
 }

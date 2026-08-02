@@ -22,13 +22,21 @@ async function main() {
   loadEnvFile(".env.local");
 
   const requested = process.argv.slice(2) as Brand[];
-  const targets = requested.length > 0
-    ? SOURCES.filter((s) => requested.includes(s.brand))
-    : SOURCES;
-  if (targets.length === 0) {
+  if (requested.length > 0 && requested.some((b) => !SOURCES.some((s) => s.brand === b))) {
     console.error(`알 수 없는 브랜드: ${requested.join(", ")} · 가능: ${SOURCES.map((s) => s.brand).join(", ")}`);
     process.exit(2);
   }
+
+  // GitHub 이 러너에 자동으로 넣는 변수. 여기서는 해외 IP 차단 사이트를 건너뛴다. 이름을 지정하면 예외.
+  const onHostedRunner = process.env.GITHUB_ACTIONS === "true";
+  const targets = SOURCES.filter((s) => {
+    if (requested.length > 0) return requested.includes(s.brand);
+    if (onHostedRunner && s.localOnly) {
+      console.log(`[${s.brand}] skipped · 해외 IP 차단 사이트 — 로컬에서 \`pnpm crawl ${s.brand}\` 로 실행`);
+      return false;
+    }
+    return true;
+  });
 
   const db = createAdminClient();
   let failed = 0;

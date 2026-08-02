@@ -7,6 +7,9 @@ import type { BrandSource, CrawledMenu } from "../types";
  * 맘스터치 — PHP 서버 렌더링. /menu/new.php?s_sect1={카테고리}&pageNo={n}
  * 카드: <li><a href="javascript:go_view('IDX')"><i class="new">NEW</i><figure>…</figure><p class="sub-text/><h3/><p/></a></li>
  * 가격은 HTML 주석 처리돼 있고 영양성분 탭은 비어 있어 목록만 수집한다. 상세는 호출하지 않는다.
+ *
+ * 국내 IDC(FW-IDC) 직결 호스팅이라 해외 IP 의 TCP 연결을 막는다. GitHub 러너(미국)에서는 fetch failed.
+ * 그래서 localOnly — 한국 IP 에서 `pnpm crawl moms` 로 돌린다.
  */
 const SITE = "https://momstouch.co.kr";
 const PAGE_DELAY_MS = 300;
@@ -60,6 +63,7 @@ function parseCards(html: string): { cards: MomsCard[]; lastPage: number } {
 
 export const momstouch: BrandSource = {
   brand: "moms",
+  localOnly: true,
   async crawl() {
     const byIdx = new Map<string, { card: MomsCard; categories: string[]; featured: boolean }>();
 
