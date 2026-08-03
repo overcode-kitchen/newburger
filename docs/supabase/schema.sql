@@ -45,6 +45,13 @@ create table public.menus (
   first_seen_at  timestamptz not null default now(),
   last_seen_at   timestamptz not null default now(),
 
+  -- 큐레이션 · 운영자가 Supabase 에서 직접 고치는 값. 크롤러 payload 에 없어 매일 upsert 되어도 보존된다.
+  -- 코드는 항상 "큐레이션 값 ?? 수집 값" 순으로 읽는다
+  curated_kind         text check (curated_kind is null or curated_kind in ('burger', 'other')),  -- 버거 판정 강제. null 이면 category 규칙
+  curated_release_date date,                                                                       -- 출시일을 안 주는 브랜드용. release_date 보다 우선
+  curated_hidden       boolean not null default false,                                             -- 판매 중이어도 사이트 전체에서 숨김
+  curated_note         text,                                                                       -- 운영 메모. 화면 비노출
+
   -- 원본 보관 · 브랜드 응답 전체. 나중에 필요한 필드를 재수집 없이 꺼내 쓴다
   raw            jsonb not null default '{}'::jsonb,
 
