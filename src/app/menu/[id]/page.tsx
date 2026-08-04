@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { getMenuById, getReviewsByMenuId, hasSupabaseEnv } from "@/lib/menu-data";
+import { isNew } from "@/lib/menu-rules";
 import {
   BRAND_LABELS,
   BRAND_LOGOS,
   formatDate,
   formatPrice,
-  isNewMenu,
 } from "@/lib/newburger";
 import { cn } from "@/lib/utils";
 import type { MenuWithStats } from "@/types";
@@ -101,7 +101,7 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
                 한정
               </Badge>
             )}
-            {isNewMenu(menu.release_date) && (
+            {isNew(menu) && (
               <Badge className="border-black/10 bg-white/95 text-xs text-foreground">NEW</Badge>
             )}
           </div>

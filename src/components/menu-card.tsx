@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { BRAND_LABELS, BRAND_LOGOS, isNewMenu } from "@/lib/newburger";
+import { isNew } from "@/lib/menu-rules";
+import { BRAND_LABELS, BRAND_LOGOS } from "@/lib/newburger";
 import { cn } from "@/lib/utils";
 import type { MenuWithStats } from "@/types";
 
@@ -91,7 +92,7 @@ export function MenuCard({
         aria-hidden
       />
 
-      {(menu.is_limited || isNewMenu(menu.release_date)) && (
+      {(menu.is_limited || isNew(menu)) && (
         <div className="absolute left-0 right-0 top-0 z-[25] flex items-start justify-end gap-1 p-3">
           {menu.is_limited && (
             <Badge
@@ -101,7 +102,7 @@ export function MenuCard({
               한정
             </Badge>
           )}
-          {isNewMenu(menu.release_date) && (
+          {isNew(menu) && (
             <Badge className="border-black/10 bg-white/95 text-xs text-foreground">
               NEW
             </Badge>

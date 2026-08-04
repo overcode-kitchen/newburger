@@ -35,7 +35,12 @@ export const getMenus = cache(
 
     const supabase = await createClient();
 
-    let query = supabase.from("menus").select("*");
+    // 내려간 메뉴와 운영자가 숨긴 메뉴는 목록에 없다. 상세는 공유 링크가 죽지 않게 내려간 메뉴도 연다
+    let query = supabase
+      .from("menus")
+      .select("*")
+      .eq("is_active", true)
+      .eq("curated_hidden", false);
     if (brand !== "all") query = query.eq("brand", brand);
 
     const { data: menusData, error: menusError } = await query.order(
@@ -79,6 +84,7 @@ export const getMenuById = cache(async (id: string): Promise<MenuWithStats | nul
     .from("menus")
     .select("*")
     .eq("id", id)
+    .eq("curated_hidden", false)
     .single();
 
   if (menuError) {
