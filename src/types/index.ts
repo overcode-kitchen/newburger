@@ -63,6 +63,13 @@ export interface Review {
   created_at: string;
 }
 
+/** public.menu_review_stats — reviews 를 menu_id 로 집계한 뷰. average_rating 은 numeric 이라 문자열로 올 수 있다 */
+export interface MenuReviewStats {
+  menu_id: string;
+  review_count: number;
+  average_rating: number | string;
+}
+
 export interface MenuWithStats extends Menu {
   average_rating: number;
   review_count: number;

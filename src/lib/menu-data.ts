@@ -1,25 +1,16 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { Brand, Menu, MenuWithStats, Review, SortOption } from "@/types";
+import type { Brand, Menu, MenuReviewStats, MenuWithStats, Review, SortOption } from "@/types";
 
-function withStats(menus: Menu[], reviews: Review[]): MenuWithStats[] {
-  const grouped = new Map<string, { sum: number; count: number }>();
-
-  for (const review of reviews) {
-    const current = grouped.get(review.menu_id) ?? { sum: 0, count: 0 };
-    grouped.set(review.menu_id, {
-      sum: current.sum + review.rating,
-      count: current.count + 1,
-    });
-  }
+function withStats(menus: Menu[], stats: MenuReviewStats[]): MenuWithStats[] {
+  const byMenu = new Map(stats.map((s) => [s.menu_id, s]));
 
   return menus.map((menu) => {
-    const stats = grouped.get(menu.id) ?? { sum: 0, count: 0 };
-    const average = stats.count > 0 ? stats.sum / stats.count : 0;
+    const stat = byMenu.get(menu.id);
     return {
       ...menu,
-      average_rating: Number(average.toFixed(1)),
-      review_count: stats.count,
+      average_rating: stat ? Number(stat.average_rating) : 0,
+      review_count: stat?.review_count ?? 0,
     };
   });
 }
@@ -53,15 +44,14 @@ export const getMenus = cache(
     const menus = (menusData ?? []) as Menu[];
     if (menus.length === 0) return [];
 
-    const menuIds = menus.map((menu) => menu.id);
-    const { data: reviewsData, error: reviewsError } = await supabase
-      .from("reviews")
-      .select("*")
-      .in("menu_id", menuIds);
+    // 메뉴 id 수백 개를 .in() 으로 보내면 URL 이 게이트웨이 한도를 넘어 fetch failed 로 죽는다. 집계 뷰를 통째로 읽는다
+    const { data: statsData, error: statsError } = await supabase
+      .from("menu_review_stats")
+      .select("*");
 
-    if (reviewsError) throw new Error(reviewsError.message);
+    if (statsError) throw new Error(statsError.message);
 
-    const combined = withStats(menus, (reviewsData ?? []) as Review[]);
+    const combined = withStats(menus, (statsData ?? []) as MenuReviewStats[]);
 
     if (sort === "popular") {
       combined.sort((a, b) => {
@@ -92,14 +82,14 @@ export const getMenuById = cache(async (id: string): Promise<MenuWithStats | nul
     throw new Error(menuError.message);
   }
 
-  const { data: reviewsData, error: reviewsError } = await supabase
-    .from("reviews")
+  const { data: statsData, error: statsError } = await supabase
+    .from("menu_review_stats")
     .select("*")
     .eq("menu_id", id);
 
-  if (reviewsError) throw new Error(reviewsError.message);
+  if (statsError) throw new Error(statsError.message);
 
-  return withStats([menu as Menu], (reviewsData ?? []) as Review[])[0] ?? null;
+  return withStats([menu as Menu], (statsData ?? []) as MenuReviewStats[])[0] ?? null;
 });
 
 export const getReviewsByMenuId = cache(async (menuId: string): Promise<Review[]> => {

@@ -82,6 +82,16 @@ create table public.reviews (
 
 create index reviews_menu_created_idx on public.reviews (menu_id, created_at desc);
 
+-- 메뉴별 후기 집계. 화면은 reviews 를 id 목록으로 긁지 않고 이 뷰만 읽는다 (id 수백 개를 URL 에 실으면 게이트웨이가 끊는다)
+create or replace view public.menu_review_stats
+  with (security_invoker = true) as
+select
+  menu_id,
+  count(*)::integer                as review_count,
+  round(avg(rating)::numeric, 1)   as average_rating
+from public.reviews
+group by menu_id;
+
 -- ─────────────────────────────────────────────────────────────
 -- crawl_runs — 수집 실행 이력. 자동화가 조용히 멈추는 것을 잡기 위함
 -- ─────────────────────────────────────────────────────────────
@@ -125,6 +135,8 @@ create policy "Public can read menus"
 
 create policy "Public can read reviews"
   on public.reviews for select to anon, authenticated using (true);
+
+grant select on public.menu_review_stats to anon, authenticated;
 
 create policy "Public can insert reviews"
   on public.reviews for insert to anon, authenticated

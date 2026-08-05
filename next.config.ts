@@ -12,11 +12,17 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
-      // 맥도날드 — 공개 API의 pcImageUrl 이 이 호스트를 가리킴
+      // 맥도날드 — 공개 API의 pcImageUrl 이 이 호스트를 가리킴.
+      // 대부분 /upload/** 이지만 오래된 상시 메뉴 7건은 /uploadFolder/** 라 둘 다 연다
       {
         protocol: "https",
         hostname: "www.mcdonalds.co.kr",
         pathname: "/upload/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.mcdonalds.co.kr",
+        pathname: "/uploadFolder/**",
       },
       // 버거킹 — 트랜잭션 API 의 menuImgPath 호스트
       {
