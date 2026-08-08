@@ -1,5 +1,11 @@
-const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36";
+/**
+ * 브라우저 UA 뒤에 서비스명과 연락처를 덧붙인다. 분쟁 시 "정상적·공개적 수집"의 근거이자 브랜드가 연락할 수 있는 통로.
+ * 브라우저 UA 를 통째로 바꾸면 일부 사이트가 막으므로 덧붙이기만 한다. 연락처는 CRAWLER_CONTACT 환경변수.
+ */
+const USER_AGENT = [
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
+  `NewBurger/1.0 (+https://github.com/overcode-kitchen/newburger${process.env.CRAWLER_CONTACT ? `; ${process.env.CRAWLER_CONTACT}` : ""})`,
+].join(" ");
 
 /**
  * Node fetch 는 네트워크 실패를 "fetch failed" 한 줄로 감추고 실제 원인은 error.cause 에 둔다.
