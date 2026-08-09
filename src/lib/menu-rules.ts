@@ -139,12 +139,14 @@ function daysBetween(from: string, to: string): number {
 
 /**
  * 결정 B. 판매 중이면서
+ *  - 한정판(종료일이 있고 아직 안 지남)이면: 출시가 오래됐어도 포함 — "지금 아니면 못 먹는 것"은 도전 대상
  *  - 날짜가 있으면: 오늘 기준 NEW_WINDOW_DAYS 안 (미래 출시 예정은 제외)
  *  - 날짜가 없으면: 브랜드가 NEW 뱃지를 붙인 것
  * is_featured 는 상시 메뉴(빅맥 등)에도 붙어 있어 신메뉴 판정에 쓰지 않는다.
  */
 export function isNew(menu: Menu, today: string = todayKST()): boolean {
   if (!menu.is_active) return false;
+  if (menu.is_limited && menu.end_date && menu.end_date >= today) return true;
   const date = effectiveDate(menu);
   if (date) {
     const age = daysBetween(date, today);
@@ -261,23 +263,43 @@ export function groupVariants(menus: MenuWithStats[], today: string = todayKST()
   });
 }
 
-/** 정렬 키. 날짜가 없는 NEW 는 처음 확인한 날로 줄을 서고, 운영자가 출시일을 넣으면 그 자리로 옮겨 간다 */
-function sortDate(group: MenuGroup): string {
-  return group.date ?? toDateOnly(group.representative.first_seen_at);
-}
+/** 홈 "이번 주 나왔어요" 레일에 들어가는 기간 */
+export const THIS_WEEK_DAYS = 7;
 
-/** 최신 출시순. 같은 날이면 브랜드가 밀고 있는 것 먼저, 그다음 이름순 */
+/**
+ * 최신 출시순. 날짜가 있는 것이 먼저(최신순), 없는 것은 뒤로.
+ * 날짜 없는 NEW 를 확인일로 줄 세우면 백필(9/17~18)분이 진짜 신메뉴보다 위로 올라오므로 뒤에 둔다.
+ * 운영자가 curated_release_date 를 넣으면 그 자리로 옮겨 간다. 같은 날이면 브랜드가 밀고 있는 것 먼저, 그다음 이름순.
+ */
 export function sortNewest(groups: MenuGroup[]): MenuGroup[] {
   return [...groups].sort((a, b) => {
-    const byDate = sortDate(b).localeCompare(sortDate(a));
+    if ((a.date === null) !== (b.date === null)) return a.date === null ? 1 : -1;
+    const keyA = a.date ?? toDateOnly(a.representative.first_seen_at);
+    const keyB = b.date ?? toDateOnly(b.representative.first_seen_at);
+    const byDate = keyB.localeCompare(keyA);
     if (byDate !== 0) return byDate;
     if (a.is_hot !== b.is_hot) return a.is_hot ? -1 : 1;
     return a.name.localeCompare(b.name, "ko");
   });
 }
 
-/** 홈 첫 블록: 판매 중인 버거 중 신메뉴만, 최신순 */
+/** 판매 중인 버거 중 신메뉴만, 최신순 */
 export function newBurgerGroups(menus: MenuWithStats[], today: string = todayKST()): MenuGroup[] {
   const burgers = menus.filter((m) => m.is_active && !m.curated_hidden && isBurger(m));
   return sortNewest(groupVariants(burgers, today)).filter((g) => g.is_new);
+}
+
+export interface HomeSections {
+  /** 출시일이 THIS_WEEK_DAYS 안 — 가로 레일 */
+  thisWeek: MenuGroup[];
+  /** 나머지 신메뉴 — 그리드. 날짜 있는 것 최신순, 없는 것 뒤 */
+  recent: MenuGroup[];
+}
+
+/** 홈 화면 두 블록. 이번 주 것이 없으면 thisWeek 는 빈 배열이고 화면은 레일을 그리지 않는다 */
+export function homeSections(menus: MenuWithStats[], today: string = todayKST()): HomeSections {
+  const groups = newBurgerGroups(menus, today);
+  const thisWeek = groups.filter((g) => g.date !== null && daysBetween(g.date, today) <= THIS_WEEK_DAYS);
+  const recent = groups.filter((g) => !thisWeek.includes(g));
+  return { thisWeek, recent };
 }

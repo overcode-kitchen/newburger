@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   displayBadge,
   groupVariants,
+  homeSections,
   isBurger,
   isHot,
   isNew,
@@ -99,14 +100,22 @@ async function main() {
 
   const burgers = menus.filter(isBurger);
   const groups = sortNewest(groupVariants(burgers, today));
-  const shown = showAll ? groups : groups.filter((g) => g.is_new);
+  const sections = homeSections(menus, today);
+  const shown = showAll ? groups : [...sections.thisWeek, ...sections.recent];
 
-  console.log(`# ${showAll ? "판매 중인 버거" : "신메뉴 버거 (홈 첫 블록)"} · 기준일 ${today}`);
+  console.log(`# ${showAll ? "판매 중인 버거" : "신메뉴 버거 (홈)"} · 기준일 ${today}`);
   console.log(
     `# 판매 중 ${menus.length}행 → 버거 ${burgers.length}행 → 묶음 ${groups.length}개 → 표시 ${shown.length}개\n`,
   );
 
-  for (const g of shown) console.log(formatGroup(g) + "\n");
+  if (showAll) {
+    for (const g of shown) console.log(formatGroup(g) + "\n");
+  } else {
+    console.log(`## 이번 주 나왔어요 · ${sections.thisWeek.length}\n`);
+    for (const g of sections.thisWeek) console.log(formatGroup(g) + "\n");
+    console.log(`## 요즘 신버거 · ${sections.recent.length}\n`);
+    for (const g of sections.recent) console.log(formatGroup(g) + "\n");
+  }
 
   console.log("## 브랜드별");
   for (const brand of BRAND_ORDER) {

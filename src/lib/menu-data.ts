@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { homeSections, type HomeSections } from "@/lib/menu-rules";
 import type { Brand, Menu, MenuReviewStats, MenuWithStats, Review, SortOption } from "@/types";
 
 function withStats(menus: Menu[], stats: MenuReviewStats[]): MenuWithStats[] {
@@ -65,6 +66,30 @@ export const getMenus = cache(
     return combined;
   },
 );
+
+/**
+ * 홈 두 블록. 판매 중 + 숨김 아님 전체를 한 번에 읽고 판정·묶기는 menu-rules 가 한다.
+ * 브랜드 필터는 묶은 뒤에 거른다 — 같은 버거의 변형 행이 브랜드를 넘나들지 않으므로 결과는 같고, 캐시 히트가 더 좋다.
+ */
+export const getHomeSections = cache(async (brand: Brand | "all"): Promise<HomeSections> => {
+  if (!hasSupabaseEnv) return { thisWeek: [], recent: [] };
+
+  const supabase = await createClient();
+  const [{ data: menusData, error: menusError }, { data: statsData, error: statsError }] = await Promise.all([
+    supabase.from("menus").select("*").eq("is_active", true).eq("curated_hidden", false),
+    supabase.from("menu_review_stats").select("*"),
+  ]);
+  if (menusError) throw new Error(menusError.message);
+  if (statsError) throw new Error(statsError.message);
+
+  const menus = withStats((menusData ?? []) as Menu[], (statsData ?? []) as MenuReviewStats[]);
+  const sections = homeSections(menus);
+  if (brand === "all") return sections;
+  return {
+    thisWeek: sections.thisWeek.filter((g) => g.brand === brand),
+    recent: sections.recent.filter((g) => g.brand === brand),
+  };
+});
 
 export const getMenuById = cache(async (id: string): Promise<MenuWithStats | null> => {
   if (!hasSupabaseEnv) return null;
