@@ -56,76 +56,78 @@
 }
 
 :root {
-  /* 포근한 크림 톤 배경 (미니멀 브랜딩) */
-  --background: oklch(0.985 0.012 85);
-  --foreground: oklch(0.22 0.02 75);
-  --card: oklch(0.995 0.008 85);
-  --card-foreground: oklch(0.22 0.02 75);
-  --popover: oklch(0.995 0.008 85);
-  --popover-foreground: oklch(0.22 0.02 75);
-  /* 살짝 부드러운 코랄·피치 계열 프라이머리 */
-  --primary: oklch(0.72 0.13 48);
-  --primary-foreground: oklch(0.98 0.02 85);
-  --secondary: oklch(0.96 0.02 85);
-  --secondary-foreground: oklch(0.28 0.03 75);
-  --muted: oklch(0.955 0.018 85);
-  --muted-foreground: oklch(0.5 0.03 75);
-  --accent: oklch(0.94 0.04 95);
-  --accent-foreground: oklch(0.3 0.04 75);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.02 85);
-  --input: oklch(0.9 0.02 85);
-  --ring: oklch(0.68 0.12 48);
+  /* A안 (2026-09-18 확정): 노란 기운 없는 중성 바탕 + 흰 카드. 버거 사진(번·치즈·패티)이 전부 따뜻한 색이라
+     바탕까지 따뜻하면 사진이 묻히고 4사 빨강 로고가 탁해진다. 종이 느낌은 병 시트 안에서만 쓴다 */
+  --background: oklch(0.975 0.003 90);
+  --foreground: oklch(0.2 0.01 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.01 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.01 60);
+  /* 피클 그린 — 4사가 빨강~주황을 다 쓰므로 우리 강조색은 그 반대편. "10/21까지"가 "아직 살 수 있음"으로 읽힌다 */
+  --primary: oklch(0.55 0.12 150);
+  --primary-foreground: oklch(0.99 0.01 150);
+  --secondary: oklch(0.955 0.004 90);
+  --secondary-foreground: oklch(0.28 0.01 60);
+  --muted: oklch(0.955 0.004 90);
+  --muted-foreground: oklch(0.5 0.01 60);
+  --accent: oklch(0.55 0.12 150 / 0.12);
+  --accent-foreground: oklch(0.3 0.08 150);
+  --destructive: oklch(0.55 0.19 30);
+  --border: oklch(0.9 0.004 90);
+  --input: oklch(0.9 0.004 90);
+  --ring: oklch(0.55 0.12 150);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.875rem;
-  --sidebar: oklch(0.985 0.012 85);
-  --sidebar-foreground: oklch(0.22 0.02 75);
-  --sidebar-primary: oklch(0.72 0.13 48);
-  --sidebar-primary-foreground: oklch(0.98 0.02 85);
-  --sidebar-accent: oklch(0.96 0.02 85);
-  --sidebar-accent-foreground: oklch(0.28 0.03 75);
-  --sidebar-border: oklch(0.9 0.02 85);
+  --sidebar: oklch(0.975 0.003 90);
+  --sidebar-foreground: oklch(0.2 0.01 60);
+  --sidebar-primary: oklch(0.55 0.12 150);
+  --sidebar-primary-foreground: oklch(0.99 0.01 150);
+  --sidebar-accent: oklch(0.955 0.004 90);
+  --sidebar-accent-foreground: oklch(0.28 0.01 60);
+  --sidebar-border: oklch(0.9 0.004 90);
   --sidebar-ring: oklch(0.708 0 0);
-  --menu-image-matte: oklch(0.965 0.012 85);
+  /* 누끼 사진 뒤 매트 — 바탕보다 한 단 어두운 중성 */
+  --menu-image-matte: oklch(0.955 0.004 90);
 }
 
 .dark {
-  --background: oklch(0.18 0.02 75);
-  --foreground: oklch(0.97 0.01 85);
-  --card: oklch(0.22 0.025 75);
-  --card-foreground: oklch(0.97 0.01 85);
-  --popover: oklch(0.22 0.025 75);
-  --popover-foreground: oklch(0.97 0.01 85);
-  --primary: oklch(0.78 0.12 52);
-  --primary-foreground: oklch(0.18 0.03 75);
-  --secondary: oklch(0.28 0.03 75);
-  --secondary-foreground: oklch(0.96 0.01 85);
-  --muted: oklch(0.28 0.03 75);
-  --muted-foreground: oklch(0.72 0.02 85);
-  --accent: oklch(0.32 0.04 80);
-  --accent-foreground: oklch(0.96 0.01 85);
+  --background: oklch(0.17 0.005 60);
+  --foreground: oklch(0.97 0.005 90);
+  --card: oklch(0.21 0.006 60);
+  --card-foreground: oklch(0.97 0.005 90);
+  --popover: oklch(0.21 0.006 60);
+  --popover-foreground: oklch(0.97 0.005 90);
+  --primary: oklch(0.75 0.13 155);
+  --primary-foreground: oklch(0.17 0.03 150);
+  --secondary: oklch(0.27 0.006 60);
+  --secondary-foreground: oklch(0.96 0.005 90);
+  --muted: oklch(0.27 0.006 60);
+  --muted-foreground: oklch(0.72 0.005 90);
+  --accent: oklch(0.75 0.13 155 / 0.15);
+  --accent-foreground: oklch(0.85 0.1 155);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.72 0.11 52);
+  --ring: oklch(0.75 0.13 155);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.2 0.025 75);
-  --sidebar-foreground: oklch(0.97 0.01 85);
-  --sidebar-primary: oklch(0.78 0.12 52);
-  --sidebar-primary-foreground: oklch(0.18 0.03 75);
-  --sidebar-accent: oklch(0.28 0.03 75);
-  --sidebar-accent-foreground: oklch(0.96 0.01 85);
+  --sidebar: oklch(0.19 0.006 60);
+  --sidebar-foreground: oklch(0.97 0.005 90);
+  --sidebar-primary: oklch(0.75 0.13 155);
+  --sidebar-primary-foreground: oklch(0.17 0.03 150);
+  --sidebar-accent: oklch(0.27 0.006 60);
+  --sidebar-accent-foreground: oklch(0.96 0.005 90);
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.556 0 0);
-  --menu-image-matte: oklch(0.965 0.012 85);
+  --menu-image-matte: oklch(0.25 0.006 60);
 }
 
 @layer base {

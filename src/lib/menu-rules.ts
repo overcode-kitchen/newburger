@@ -137,6 +137,14 @@ function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / MS_PER_DAY);
 }
 
+/** 종료일까지 남은 날. 지났으면 음수 */
+export function daysUntil(date: string, today: string = todayKST()): number {
+  return daysBetween(today, date);
+}
+
+/** 이 안에 끝나면 "곧 종료" */
+export const ENDING_SOON_DAYS = 7;
+
 /**
  * 결정 B. 판매 중이면서
  *  - 한정판(종료일이 있고 아직 안 지남)이면: 출시가 오래됐어도 포함 — "지금 아니면 못 먹는 것"은 도전 대상

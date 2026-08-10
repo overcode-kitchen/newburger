@@ -44,6 +44,14 @@ export const BRAND_LOGOS: Record<
   },
 };
 
+/** 로고를 못 쓰게 됐을 때의 이니셜. 브랜드 색 없이 자체 팔레트로만 그린다 (docs/legal/brand-mark-policy.md) */
+export const BRAND_INITIALS: Record<Brand, string> = {
+  mcdonald: "M",
+  burgerking: "BK",
+  lotteria: "L",
+  moms: "MT",
+};
+
 export const BRAND_CHIP_STYLES: Record<
   Brand,
   { active: string; inactive: string; subtle: string }
@@ -86,6 +94,12 @@ export function parseSort(value: string | undefined): SortOption {
 
 export function formatPrice(price: number): string {
   return `${price.toLocaleString("ko-KR")}원`;
+}
+
+/** "2026-10-21" → "10/21". 카드처럼 좁은 곳용 */
+export function formatMonthDay(dateValue: string): string {
+  const [, m, d] = dateValue.split("-");
+  return `${Number(m)}/${Number(d)}`;
 }
 
 export function formatDate(dateValue: string | null): string {
