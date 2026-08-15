@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { BrandChips } from "@/components/brand-chips";
+import { BrandMark } from "@/components/brand-mark";
 import { MenuCard } from "@/components/menu-card";
 import { ErrorState } from "@/components/error-state";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { MenuWithStats } from "@/types";
+import type { MenuGroup, MenuWithStats } from "@/types";
 
 const menuCardPreviewSample: MenuWithStats = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -53,22 +55,27 @@ const menuCardPreviewSample: MenuWithStats = {
   review_count: 128,
 };
 
-const menuCardVariantSamples: ReadonlyArray<{
-  label: string;
-  description: string;
-  overlayVariant: "a" | "c";
-}> = [
-  {
-    label: "A — 전영역 그라데이션 (현재 적용)",
-    description: "from-transparent via-white/30 to-white/80 · 중단부터 은은하게 흰 막이 쌓임",
-    overlayVariant: "a",
-  },
-  {
-    label: "C — 하단 집중 그라데이션",
-    description: "from-transparent from-55% via-white/40 via-80% to-white/92 · 상단은 완전 선명, 하단 45%에만 흰 막",
-    overlayVariant: "c",
-  },
-];
+const menuCardGroupLimited: MenuGroup = {
+  key: "burgerking:통새우와퍼스파이시",
+  brand: "burgerking",
+  name: "통새우 와퍼 스파이시",
+  representative: menuCardPreviewSample,
+  members: [menuCardPreviewSample],
+  variants: [{ label: "세트", price: 11800, menu: menuCardPreviewSample }],
+  date: "2026-04-09",
+  is_new: true,
+  is_hot: true,
+  review_count: 0,
+  average_rating: 0,
+};
+
+const menuCardGroupPriced: MenuGroup = {
+  ...menuCardGroupLimited,
+  key: "burgerking:통새우와퍼",
+  name: "통새우 와퍼",
+  representative: { ...menuCardPreviewSample, end_date: null, is_limited: false },
+  date: null,
+};
 
 const menuDetailInfoSamples: ReadonlyArray<{ label: string; value: string }> = [
   { label: "단품", value: "8,500원" },
@@ -164,23 +171,44 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
     ),
   },
   {
+    name: "BrandMark",
+    sourcePath: "src/components/brand-mark.tsx",
+    notes: "로고를 그리는 유일한 곳. NEXT_PUBLIC_BRAND_MARK=logo|initial|text 로 전환. badge = 카드 위 원형(로고만) · inline = 로고 + 이름",
+    render: () => (
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex gap-2 rounded-2xl bg-menu-image-matte p-3">
+          <BrandMark brand="mcdonald" variant="badge" />
+          <BrandMark brand="burgerking" variant="badge" />
+          <BrandMark brand="lotteria" variant="badge" />
+          <BrandMark brand="moms" variant="badge" />
+        </div>
+        <div className="flex flex-col gap-1 text-sm">
+          <BrandMark brand="mcdonald" />
+          <BrandMark brand="moms" size="md" />
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: "BrandChips",
+    sourcePath: "src/components/brand-chips.tsx",
+    notes: "브랜드 필터. 기억 안 함. 활성 칩은 브랜드 원색, 전체는 primary",
+    render: () => <BrandChips selected="burgerking" />,
+  },
+  {
     name: "MenuCard",
     sourcePath: "src/components/menu-card.tsx",
-    notes: "하단 텍스트 가독성용 z-20 흰 그라데이션 변형 비교 프리뷰 (A = 현재 적용 / C = 하단 집중)",
+    notes: "grid(2열) · rail(이번 주 큰 카드, 출시일 스탬프). 메타는 종료일 > 가격 > 없음. 설명·별점·NEW 없음",
     render: () => (
-      <div className="grid gap-4 md:grid-cols-2">
-        {menuCardVariantSamples.map((variant) => (
-          <div key={variant.label} className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-sm font-medium">{variant.label}</p>
-              <p className="text-xs text-muted-foreground">{variant.description}</p>
-            </div>
-            <MenuCard
-              menu={menuCardPreviewSample}
-              overlayVariant={variant.overlayVariant}
-            />
-          </div>
-        ))}
+      <div className="space-y-4">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          <MenuCard group={menuCardGroupLimited} variant="rail" />
+          <MenuCard group={menuCardGroupPriced} variant="rail" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <MenuCard group={menuCardGroupLimited} />
+          <MenuCard group={menuCardGroupPriced} />
+        </div>
       </div>
     ),
   },

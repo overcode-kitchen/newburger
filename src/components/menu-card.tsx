@@ -1,129 +1,96 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { isNew } from "@/lib/menu-rules";
-import { BRAND_LABELS, BRAND_LOGOS } from "@/lib/newburger";
+import { BrandMark } from "@/components/brand-mark";
+import { MenuImage } from "@/components/menu-image";
+import { ENDING_SOON_DAYS, daysUntil } from "@/lib/menu-rules";
+import { formatMonthDay, formatPrice } from "@/lib/newburger";
 import { cn } from "@/lib/utils";
-import type { MenuWithStats } from "@/types";
+import type { MenuGroup } from "@/types";
 
 interface MenuCardProps {
-  menu: MenuWithStats;
-  imageFit?: "cover" | "contain";
-  imagePosition?: "center" | "top";
-  cardAspect?: "3/4" | "4/5";
-  overlayVariant?: "a" | "c";
+  group: MenuGroup;
+  /** grid: 2열 카드 · rail: "이번 주" 가로 레일의 큰 카드 (출시일 스탬프 포함) */
+  variant?: "grid" | "rail";
+  priority?: boolean;
 }
 
-const OVERLAY_VARIANT_CLASS: Record<NonNullable<MenuCardProps["overlayVariant"]>, string> = {
-  a: "bg-gradient-to-b from-transparent via-white/30 to-white/80",
-  c: "bg-gradient-to-b from-transparent from-55% via-white/40 via-80% to-white/92",
-};
-
-function MenuCardBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-black/15 sm:max-w-56",
-        "bg-white/80 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm",
-      )}
-    >
-      <Image
-        src={BRAND_LOGOS[brand].src}
-        alt=""
-        width={BRAND_LOGOS[brand].width}
-        height={BRAND_LOGOS[brand].height}
-        className="h-3 w-auto shrink-0 opacity-90"
-        aria-hidden
-      />
-      <span className="truncate">{BRAND_LABELS[brand]}</span>
-    </span>
-  );
-}
-
-export function MenuCard({
-  menu,
-  imageFit = "cover",
-  imagePosition = "top",
-  cardAspect = "3/4",
-  overlayVariant = "a",
-}: MenuCardProps) {
-  const sizes = "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw";
-  const imageSrc = menu.image_url?.trim() ?? "";
-  const hasImage = imageSrc.length > 0;
-  const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";
-  const positionClass = imagePosition === "top" ? "object-top" : "object-center";
-  const aspectClass = cardAspect === "4/5" ? "aspect-[4/5]" : "aspect-[3/4]";
+/**
+ * 카드 문법은 유지(이미지가 카드를 채우고, 아래로 흰 막, 그 위에 브랜드 마크와 제목)하되 내용 규칙을 바꿨다.
+ *  - 설명·별점·NEW 뱃지 없음. 홈 첫 블록은 전부 신메뉴라 NEW 는 정보가 아니다
+ *  - 오른쪽 위엔 종료일만. 7일 이내면 "곧 종료"
+ *  - 메타는 하나: 종료일 > 가격 > 없음. 없는 값은 자리도 없다
+ *  - 브랜드는 로고 원형 마크만. 이름은 접근성 텍스트 (docs/legal/brand-mark-policy.md 예외 항목)
+ */
+export function MenuCard({ group, variant = "grid", priority = false }: MenuCardProps) {
+  const menu = group.representative;
+  const isRail = variant === "rail";
+  const endsIn = menu.end_date ? daysUntil(menu.end_date) : null;
+  const endingSoon = endsIn !== null && endsIn <= ENDING_SOON_DAYS;
 
   return (
     <Link
       href={`/menu/${menu.id}`}
       className={cn(
-        "group relative block w-full overflow-hidden rounded-3xl shadow-sm ring-1 ring-border/60 transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20",
-        aspectClass,
-        imageFit === "contain" && hasImage ? "bg-menu-image-matte" : undefined,
+        "group relative block overflow-hidden rounded-3xl bg-menu-image-matte shadow-sm ring-1 ring-border/60",
+        "transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/30",
+        isRail ? "aspect-square w-3/4 shrink-0 snap-start" : "aspect-[4/5] w-full",
       )}
     >
-      {hasImage ? (
-        <Image
-          src={imageSrc}
-          alt={menu.name}
-          fill
-          sizes={sizes}
-          className={cn(
-            "z-0",
-            fitClass,
-            positionClass,
-            imageFit === "contain" ? "bg-menu-image-matte" : undefined,
-          )}
-          priority={false}
+      {/* 하단 오버레이 영역을 비워 두려고 이미지 박스를 위쪽에 잡는다 */}
+      <div className={cn("absolute inset-x-3 top-3", isRail ? "bottom-24" : "bottom-20")}>
+        <MenuImage
+          src={menu.image_url}
+          alt={group.name}
+          sizes={isRail ? "(max-width: 768px) 75vw, 360px" : "(max-width: 768px) 50vw, 25vw"}
+          priority={priority}
+          className="object-top drop-shadow-md"
         />
-      ) : (
-        <div
-          className="absolute inset-0 z-0 bg-muted"
-          aria-hidden
-        />
-      )}
+      </div>
 
       <div
-        className={cn(
-          "pointer-events-none absolute inset-0 z-20",
-          OVERLAY_VARIANT_CLASS[overlayVariant],
-        )}
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-card/30 to-card/90"
         aria-hidden
       />
 
-      {(menu.is_limited || isNew(menu)) && (
-        <div className="absolute left-0 right-0 top-0 z-[25] flex items-start justify-end gap-1 p-3">
-          {menu.is_limited && (
-            <Badge
-              variant="outline"
-              className="border-black/20 bg-white/85 text-xs text-foreground backdrop-blur-sm"
-            >
-              한정
-            </Badge>
-          )}
-          {isNew(menu) && (
-            <Badge className="border-black/10 bg-white/95 text-xs text-foreground">
-              NEW
-            </Badge>
-          )}
-        </div>
-      )}
+      <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+        {isRail && group.date ? (
+          <span className="rounded-md bg-foreground px-2 py-0.5 font-mono text-xs font-semibold text-background">
+            {formatMonthDay(group.date)} 출시
+          </span>
+        ) : (
+          <span />
+        )}
+        {menu.end_date && (
+          <Badge
+            variant={endingSoon ? "default" : "outline"}
+            className={cn(
+              "text-xs font-semibold backdrop-blur-sm",
+              endingSoon
+                ? "border-transparent bg-destructive text-white"
+                : "border-black/15 bg-white/85 text-foreground",
+            )}
+          >
+            {endingSoon ? "곧 종료 · " : ""}
+            {formatMonthDay(menu.end_date)}까지
+          </Badge>
+        )}
+      </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-30 space-y-2 p-4 pt-12">
-        <MenuCardBrandChip brand={menu.brand} />
-        <h2 className="line-clamp-2 text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-3xl">
-          {menu.name}
-        </h2>
-        {menu.description ? (
-          <p className="line-clamp-2 text-sm leading-relaxed text-foreground/80">
-            {menu.description}
+      <div className={cn("absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-3 pt-10", isRail && "p-4 pt-12")}>
+        <BrandMark brand={group.brand} variant="badge" />
+        <h3
+          className={cn(
+            "line-clamp-2 font-bold leading-tight tracking-tight text-foreground",
+            isRail ? "text-2xl" : "text-base",
+          )}
+        >
+          {group.name}
+        </h3>
+        {!menu.end_date && menu.price_single && (
+          <p className={cn("tabular-nums text-muted-foreground", isRail ? "text-sm" : "text-xs")}>
+            {formatPrice(menu.price_single)}
           </p>
-        ) : null}
-        <p className="text-sm text-foreground/85">
-          ★ {menu.average_rating.toFixed(1)}
-          <span className="ml-1 text-muted-foreground">({menu.review_count})</span>
-        </p>
+        )}
       </div>
     </Link>
   );
