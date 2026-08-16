@@ -44,6 +44,14 @@ export const BRAND_LOGOS: Record<
   },
 };
 
+/** 브랜드 대표 페이지. 상세의 official_link 가 없을 때와 브랜드 페이지 헤더의 "○○에서 보기"에 쓴다 */
+export const BRAND_SITES: Record<Brand, string> = {
+  mcdonald: "https://www.mcdonalds.co.kr/kor/menu/list.do",
+  burgerking: "https://www.burgerking.co.kr/menu/all",
+  lotteria: "https://www.lotteeatz.com/brand/ria",
+  moms: "https://momstouch.co.kr/menu/new.php",
+};
+
 /** 로고를 못 쓰게 됐을 때의 이니셜. 브랜드 색 없이 자체 팔레트로만 그린다 (docs/legal/brand-mark-policy.md) */
 export const BRAND_INITIALS: Record<Brand, string> = {
   mcdonald: "M",

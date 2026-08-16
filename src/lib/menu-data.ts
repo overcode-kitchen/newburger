@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { homeSections, type HomeSections } from "@/lib/menu-rules";
+import { groupVariants, homeSections, isBurger, sortNewest, type HomeSections } from "@/lib/menu-rules";
+import type { MenuGroup } from "@/types";
 import type { Brand, Menu, MenuReviewStats, MenuWithStats, Review, SortOption } from "@/types";
 
 function withStats(menus: Menu[], stats: MenuReviewStats[]): MenuWithStats[] {
@@ -88,6 +89,31 @@ export const getHomeSections = cache(async (brand: Brand | "all"): Promise<HomeS
   return {
     thisWeek: sections.thisWeek.filter((g) => g.brand === brand),
     recent: sections.recent.filter((g) => g.brand === brand),
+  };
+});
+
+export interface BrandSections {
+  fresh: MenuGroup[];
+  regular: MenuGroup[];
+}
+
+/** 브랜드 페이지: 판매 중인 버거 전체(상시 포함)를 신메뉴 / 상시로 나눠 최신순 */
+export const getBrandSections = cache(async (brand: Brand): Promise<BrandSections> => {
+  if (!hasSupabaseEnv) return { fresh: [], regular: [] };
+
+  const supabase = await createClient();
+  const [{ data: menusData, error: menusError }, { data: statsData, error: statsError }] = await Promise.all([
+    supabase.from("menus").select("*").eq("brand", brand).eq("is_active", true).eq("curated_hidden", false),
+    supabase.from("menu_review_stats").select("*"),
+  ]);
+  if (menusError) throw new Error(menusError.message);
+  if (statsError) throw new Error(statsError.message);
+
+  const menus = withStats((menusData ?? []) as Menu[], (statsData ?? []) as MenuReviewStats[]);
+  const groups = sortNewest(groupVariants(menus.filter(isBurger)));
+  return {
+    fresh: groups.filter((g) => g.is_new),
+    regular: groups.filter((g) => !g.is_new),
   };
 });
 
