@@ -8,8 +8,6 @@ export type Json =
 
 export type Brand = "mcdonald" | "burgerking" | "lotteria" | "moms";
 
-export type SortOption = "latest" | "popular";
-
 /** 서비스 이름이 "뉴버거"라 버거만 메인에 올린다. 나머지는 적재만 하고 1차 노출 대상이 아니다 */
 export type MenuKind = "burger" | "other";
 

@@ -1,4 +1,4 @@
-import type { Brand, SortOption } from "@/types";
+import type { Brand } from "@/types";
 
 export const BRANDS: ReadonlyArray<Brand> = [
   "mcdonald",
@@ -86,18 +86,10 @@ export const BRAND_CHIP_STYLES: Record<
   },
 };
 
-export const SORT_OPTIONS: ReadonlyArray<SortOption> = ["latest", "popular"];
-
 export function parseBrand(value: string | undefined): Brand | "all" {
   if (!value || value === "all") return "all";
   if (BRANDS.includes(value as Brand)) return value as Brand;
   return "all";
-}
-
-export function parseSort(value: string | undefined): SortOption {
-  if (!value) return "latest";
-  if (SORT_OPTIONS.includes(value as SortOption)) return value as SortOption;
-  return "latest";
 }
 
 export function formatPrice(price: number): string {
