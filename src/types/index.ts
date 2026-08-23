@@ -102,6 +102,14 @@ export interface MenuGroup {
 
 export type CrawlRunStatus = "running" | "ok" | "failed";
 
+/** public.crawl_status — 브랜드별 마지막 수집 실행. error 없음 */
+export interface CrawlStatus {
+  brand: Brand;
+  status: CrawlRunStatus;
+  started_at: string;
+  finished_at: string | null;
+}
+
 /** public.crawl_runs — 수집 실행 이력 */
 export interface CrawlRun {
   id: string;

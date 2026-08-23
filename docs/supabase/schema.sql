@@ -109,6 +109,12 @@ create table public.crawl_runs (
 
 create index crawl_runs_brand_started_idx on public.crawl_runs (brand, started_at desc);
 
+-- 브랜드별 마지막 실행의 상태·시각만. error 는 내보내지 않는다 (홈 헤더 "갱신" 표시용)
+create or replace view public.crawl_status as
+select distinct on (brand) brand, status, started_at, finished_at
+from public.crawl_runs
+order by brand, started_at desc;
+
 -- ─────────────────────────────────────────────────────────────
 -- updated_at 자동 갱신
 -- ─────────────────────────────────────────────────────────────
@@ -142,4 +148,5 @@ create policy "Public can insert reviews"
   on public.reviews for insert to anon, authenticated
   with check (rating between 1 and 5 and (comment is null or length(comment) <= 500));
 
--- crawl_runs 는 운영자만 본다 (anon 정책 없음 → service_role 만 접근)
+-- crawl_runs 는 운영자만 본다 (anon 정책 없음 → service_role 만 접근). 화면은 crawl_status 뷰만 읽는다
+grant select on public.crawl_status to anon, authenticated;

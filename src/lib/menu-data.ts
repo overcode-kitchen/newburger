@@ -2,7 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { groupVariants, homeSections, isBurger, sortNewest, type HomeSections } from "@/lib/menu-rules";
 import type { MenuGroup } from "@/types";
-import type { Brand, Menu, MenuReviewStats, MenuWithStats, Review } from "@/types";
+import type { Brand, CrawlStatus, Menu, MenuReviewStats, MenuWithStats, Review } from "@/types";
 
 function withStats(menus: Menu[], stats: MenuReviewStats[]): MenuWithStats[] {
   const byMenu = new Map(stats.map((s) => [s.menu_id, s]));
@@ -69,6 +69,19 @@ export const getBrandSections = cache(async (brand: Brand): Promise<BrandSection
     fresh: groups.filter((g) => g.is_new),
     regular: groups.filter((g) => !g.is_new),
   };
+});
+
+/** 마지막으로 성공한 수집 시각. 4사 중 가장 최근 것 — "매일 아침 갱신"이 약속이라 화면이 말해야 한다 */
+export const getLastCrawledAt = cache(async (): Promise<string | null> => {
+  if (!hasSupabaseEnv) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("crawl_status").select("*").eq("status", "ok");
+  // 뷰가 아직 없는 DB 에서도 홈은 떠야 한다. 갱신 시각만 비운다
+  if (error) return null;
+
+  const times = ((data ?? []) as CrawlStatus[]).map((r) => r.finished_at).filter((t): t is string => t !== null);
+  return times.length > 0 ? times.sort().at(-1) ?? null : null;
 });
 
 export const getMenuById = cache(async (id: string): Promise<MenuWithStats | null> => {

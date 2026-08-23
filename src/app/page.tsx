@@ -3,8 +3,8 @@ import { BrandChips } from "@/components/brand-chips";
 import { MenuCard } from "@/components/menu-card";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { getHomeSections, hasSupabaseEnv } from "@/lib/menu-data";
-import { BRAND_LABELS, parseBrand } from "@/lib/newburger";
+import { getHomeSections, getLastCrawledAt, hasSupabaseEnv } from "@/lib/menu-data";
+import { BRAND_LABELS, formatCrawledAt, parseBrand } from "@/lib/newburger";
 
 interface HomeProps {
   searchParams: Promise<{ brand?: string }>;
@@ -17,12 +17,20 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const query = await searchParams;
   const selectedBrand = parseBrand(query.brand);
-  const { thisWeek, recent } = await getHomeSections(selectedBrand);
+  const [{ thisWeek, recent }, crawledAt] = await Promise.all([getHomeSections(selectedBrand), getLastCrawledAt()]);
   const isEmpty = thisWeek.length === 0 && recent.length === 0;
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader
+        right={
+          crawledAt && (
+            <span className="font-mono text-xs text-muted-foreground" title="마지막 수집 시각">
+              {formatCrawledAt(crawledAt)} 갱신
+            </span>
+          )
+        }
+      />
       <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-12 sm:px-6 lg:px-8">
         <p className="pb-3 text-sm text-muted-foreground">
           4개 브랜드 신버거를 모아 보는 비공식 서비스 · 매일 아침 갱신
