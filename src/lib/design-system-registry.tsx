@@ -44,6 +44,7 @@ const menuCardPreviewSample: MenuWithStats = {
   is_active: true,
   first_seen_at: "2026-04-09T00:00:00.000Z",
   last_seen_at: "2026-04-14T00:00:00.000Z",
+  reactivated_at: null,
   curated_kind: null,
   curated_release_date: null,
   curated_hidden: false,

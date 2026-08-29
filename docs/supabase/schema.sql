@@ -44,6 +44,7 @@ create table public.menus (
   is_active      boolean not null default true,    -- 최근 수집에서 목록에 존재. 사라지면 false (행은 유지)
   first_seen_at  timestamptz not null default now(),
   last_seen_at   timestamptz not null default now(),
+  reactivated_at timestamptz,                     -- 마지막 false→true 전환 시각. 재출시 감지용
 
   -- 큐레이션 · 운영자가 Supabase 에서 직접 고치는 값. 크롤러 payload 에 없어 매일 upsert 되어도 보존된다.
   -- 코드는 항상 "큐레이션 값 ?? 수집 값" 순으로 읽는다

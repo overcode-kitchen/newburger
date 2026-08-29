@@ -52,6 +52,7 @@ pnpm crawl moms
 - `(brand, source_id)` 가 같으면 같은 메뉴. 이름이 바뀌어도 새 행을 만들지 않는다.
 - 이번 수집에 없는 메뉴는 삭제하지 않고 `is_active=false` 로 내린다. `last_seen_at` 은 마지막으로 목록에 있던 시각으로 남는다.
 - `first_seen_at`·`created_at` 은 upsert 시 건드리지 않아 최초값이 보존된다.
+- 내려갔던 메뉴가 같은 ID 로 돌아오면 `reactivated_at` 에 그 시각을 남긴다 (재출시). 출시일이 없는 브랜드는 이 값이 출시일 대용이 된다.
 - `curated_*` 4개 컬럼은 운영자 전용이라 payload 에 넣지 않는다. 매일 upsert 되어도 보존된다 — `docs/supabase/curation-guide.md` 참고.
 - 상대 서버 부담을 줄이기 위해 버거킹 상세는 120ms, 맘스터치 페이지는 300ms 간격을 둔다.
 

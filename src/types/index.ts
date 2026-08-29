@@ -39,6 +39,8 @@ export interface Menu {
   is_active: boolean;
   first_seen_at: string;
   last_seen_at: string;
+  /** 마지막으로 is_active 가 false→true 로 바뀐 시각. 재출시 */
+  reactivated_at: string | null;
 
   // 큐레이션 · 운영자가 Supabase 에서 직접 고침. 크롤러가 덮어쓰지 않는다
   curated_kind: MenuKind | null;

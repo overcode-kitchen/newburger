@@ -113,12 +113,14 @@ function toDateOnly(value: string): string {
 }
 
 /**
- * 정렬·표시에 쓰는 날짜. 큐레이션 → 브랜드 출시일 → 백필 이후 처음 확인한 날.
+ * 정렬·표시에 쓰는 날짜. 큐레이션 → 브랜드 출시일 → 재출시일 → 백필 이후 처음 확인한 날.
  * 출시일을 안 주는 브랜드는 운영자가 curated_release_date 를 넣기 전까지 null 이거나 "확인일"이다.
+ * 재출시(내려갔다 돌아옴)는 first_seen_at 이 옛날이라 reactivated_at 이 있어야 신메뉴로 잡힌다.
  */
 export function effectiveDate(menu: Menu): string | null {
   if (menu.curated_release_date) return menu.curated_release_date;
   if (menu.release_date) return menu.release_date;
+  if (menu.reactivated_at) return toDateOnly(menu.reactivated_at);
   const firstSeen = toDateOnly(menu.first_seen_at);
   return firstSeen >= BACKFILL_CUTOFF ? firstSeen : null;
 }

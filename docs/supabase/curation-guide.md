@@ -15,7 +15,7 @@
 
 `name` · `category` · `badge` · `release_date` · `price_*` · `image_url` · `is_featured` · `is_active` 등 **수집 컬럼 전부**. 크롤러의 upsert 페이로드에 들어 있어 다음날 07:00 에 덮어써진다. 값이 틀렸다면 파서(`crawler/sources/*.ts`)를 고치는 게 맞다.
 
-`first_seen_at` · `created_at` 도 건드리지 않는다. 처음 본 시각이 곧 기록이다.
+`first_seen_at` · `created_at` · `reactivated_at` 도 건드리지 않는다. 처음 본 시각과 돌아온 시각이 곧 기록이다.
 
 ## 어디서 고치나
 

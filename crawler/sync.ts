@@ -8,6 +8,7 @@ export interface SyncResult {
   brand: Brand;
   seen: number;
   created: number;
+  returned: number;
   deactivated: number;
 }
 
@@ -59,6 +60,8 @@ export async function syncBrand(
 
     const seenIds = new Set(items.map((m) => m.source_id));
     const created = items.filter((m) => !existing.has(m.source_id)).length;
+    // 내려갔다가 돌아온 메뉴 — 재출시. first_seen_at 은 옛날이라 이 시각이 출시일 대용이 된다
+    const returned = items.filter((m) => existing.get(m.source_id) === false).map((m) => m.source_id);
 
     const now = new Date().toISOString();
     const payload = items.map((m) => ({ ...m, is_active: true, last_seen_at: now }));
@@ -69,6 +72,15 @@ export async function syncBrand(
         .from("menus")
         .upsert(payload.slice(i, i + 100), { onConflict: "brand,source_id" });
       if (error) throw new Error(`menus upsert 실패: ${error.message}`);
+    }
+
+    if (returned.length > 0) {
+      const { error } = await db
+        .from("menus")
+        .update({ reactivated_at: now })
+        .eq("brand", brand)
+        .in("source_id", returned);
+      if (error) throw new Error(`재출시 표시 실패: ${error.message}`);
     }
 
     const gone = [...existing.entries()]
@@ -94,7 +106,7 @@ export async function syncBrand(
       })
       .eq("id", runId);
 
-    return { brand, seen: items.length, created, deactivated: gone.length };
+    return { brand, seen: items.length, created, returned: returned.length, deactivated: gone.length };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await db
