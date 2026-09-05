@@ -56,9 +56,10 @@
 }
 
 :root {
-  /* A안 (2026-09-18 확정): 노란 기운 없는 중성 바탕 + 흰 카드. 버거 사진(번·치즈·패티)이 전부 따뜻한 색이라
-     바탕까지 따뜻하면 사진이 묻히고 4사 빨강 로고가 탁해진다. 종이 느낌은 병 시트 안에서만 쓴다 */
-  --background: oklch(0.975 0.003 90);
+  /* A안 (2026-09-18 확정): 중성 바탕 + 흰 카드. 버거 사진(번·치즈·패티)이 전부 따뜻한 색이라
+     바탕까지 따뜻하면 사진이 묻히고 4사 빨강 로고가 탁해진다. 색상각은 파랑 쪽(240)으로 아주 살짝 —
+     노랑 쪽(90)이면 채도가 낮아도 화면 전체가 따뜻하게 읽힌다. 종이 느낌은 병 시트 안에서만 쓴다 */
+  --background: oklch(0.975 0.004 240);
   --foreground: oklch(0.2 0.01 60);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.01 60);
@@ -67,15 +68,15 @@
   /* 피클 그린 — 4사가 빨강~주황을 다 쓰므로 우리 강조색은 그 반대편. "10/21까지"가 "아직 살 수 있음"으로 읽힌다 */
   --primary: oklch(0.55 0.12 150);
   --primary-foreground: oklch(0.99 0.01 150);
-  --secondary: oklch(0.955 0.004 90);
+  --secondary: oklch(0.955 0.005 240);
   --secondary-foreground: oklch(0.28 0.01 60);
-  --muted: oklch(0.955 0.004 90);
+  --muted: oklch(0.955 0.005 240);
   --muted-foreground: oklch(0.5 0.01 60);
   --accent: oklch(0.55 0.12 150 / 0.12);
   --accent-foreground: oklch(0.3 0.08 150);
   --destructive: oklch(0.55 0.19 30);
-  --border: oklch(0.9 0.004 90);
-  --input: oklch(0.9 0.004 90);
+  --border: oklch(0.9 0.006 240);
+  --input: oklch(0.9 0.006 240);
   --ring: oklch(0.55 0.12 150);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -83,16 +84,16 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.875rem;
-  --sidebar: oklch(0.975 0.003 90);
+  --sidebar: oklch(0.975 0.004 240);
   --sidebar-foreground: oklch(0.2 0.01 60);
   --sidebar-primary: oklch(0.55 0.12 150);
   --sidebar-primary-foreground: oklch(0.99 0.01 150);
-  --sidebar-accent: oklch(0.955 0.004 90);
+  --sidebar-accent: oklch(0.955 0.005 240);
   --sidebar-accent-foreground: oklch(0.28 0.01 60);
-  --sidebar-border: oklch(0.9 0.004 90);
+  --sidebar-border: oklch(0.9 0.006 240);
   --sidebar-ring: oklch(0.708 0 0);
   /* 누끼 사진 뒤 매트 — 바탕보다 한 단 어두운 중성 */
-  --menu-image-matte: oklch(0.955 0.004 90);
+  --menu-image-matte: oklch(0.955 0.005 240);
 }
 
 .dark {
