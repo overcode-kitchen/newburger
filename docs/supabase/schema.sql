@@ -94,6 +94,29 @@ from public.reviews
 group by menu_id;
 
 -- ─────────────────────────────────────────────────────────────
+-- records — 먹어봤어요. 브라우저 익명 ID(client_id 쿠키) 단위의 도전 기록
+-- ─────────────────────────────────────────────────────────────
+create table public.records (
+  id          uuid primary key default gen_random_uuid(),
+  menu_id     uuid not null references public.menus(id) on delete cascade,   -- 세트 묶음의 대표 행
+  client_id   uuid not null,                                                 -- 로그인 생기면 계정에 이어 붙인다
+  photo_path  text,                                                          -- record-photos 경로. null 이면 브랜드 사진 스티커
+  verdict     text check (verdict is null or verdict in ('good', 'bad')),    -- Phase 3
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  unique (menu_id, client_id)                                                -- 같은 브라우저 같은 메뉴 1회
+);
+
+create index records_client_created_idx on public.records (client_id, created_at desc);
+create index records_menu_idx           on public.records (menu_id);
+
+-- "n명이 도전했어요". 개인 정보 없이 건수만
+create or replace view public.menu_record_stats as
+select menu_id, count(*)::integer as record_count
+from public.records
+group by menu_id;
+
+-- ─────────────────────────────────────────────────────────────
 -- crawl_runs — 수집 실행 이력. 자동화가 조용히 멈추는 것을 잡기 위함
 -- ─────────────────────────────────────────────────────────────
 create table public.crawl_runs (
@@ -130,11 +153,16 @@ create trigger menus_set_updated_at
   before update on public.menus
   for each row execute function public.set_updated_at();
 
+create trigger records_set_updated_at
+  before update on public.records
+  for each row execute function public.set_updated_at();
+
 -- ─────────────────────────────────────────────────────────────
 -- RLS · 익명은 읽기만. menus/crawl_runs 쓰기는 service_role(크롤러) 전용
 -- ─────────────────────────────────────────────────────────────
 alter table public.menus      enable row level security;
 alter table public.reviews    enable row level security;
+alter table public.records    enable row level security;   -- anon 정책 없음. 서버 액션이 service_role 로만 접근
 alter table public.crawl_runs enable row level security;
 
 create policy "Public can read menus"
@@ -151,3 +179,9 @@ create policy "Public can insert reviews"
 
 -- crawl_runs 는 운영자만 본다 (anon 정책 없음 → service_role 만 접근). 화면은 crawl_status 뷰만 읽는다
 grant select on public.crawl_status to anon, authenticated;
+grant select on public.menu_record_stats to anon, authenticated;
+
+-- 인증샷 버킷 (비공개 · 서명 URL 로만 노출). 경로: {client_id}/{record_id}.jpg
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('record-photos', 'record-photos', false, 2097152, array['image/jpeg', 'image/webp'])
+on conflict (id) do nothing;

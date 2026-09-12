@@ -102,6 +102,25 @@ export interface MenuGroup {
   average_rating: number;
 }
 
+export type RecordVerdict = "good" | "bad";
+
+/** public.records — 먹어봤어요. 브라우저 익명 ID 단위 */
+export interface MenuRecord {
+  id: string;
+  menu_id: string;
+  client_id: string;
+  photo_path: string | null;
+  verdict: RecordVerdict | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** public.menu_record_stats — "n명이 도전했어요" */
+export interface MenuRecordStats {
+  menu_id: string;
+  record_count: number;
+}
+
 export type CrawlRunStatus = "running" | "ok" | "failed";
 
 /** public.crawl_status — 브랜드별 마지막 수집 실행. error 없음 */
