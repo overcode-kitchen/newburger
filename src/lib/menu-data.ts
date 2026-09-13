@@ -2,7 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { groupVariants, homeSections, isBurger, sortNewest, type HomeSections } from "@/lib/menu-rules";
 import type { MenuGroup } from "@/types";
-import type { Brand, CrawlStatus, Menu, MenuReviewStats, MenuWithStats, Review } from "@/types";
+import type { Brand, CrawlStatus, Menu, MenuReviewStats, MenuWithStats } from "@/types";
 
 function withStats(menus: Menu[], stats: MenuReviewStats[]): MenuWithStats[] {
   const byMenu = new Map(stats.map((s) => [s.menu_id, s]));
@@ -84,6 +84,39 @@ export const getLastCrawledAt = cache(async (): Promise<string | null> => {
   return times.length > 0 ? times.sort().at(-1) ?? null : null;
 });
 
+export interface MenuGroupLookup {
+  group: MenuGroup;
+  /** 요청한 id 가 세트 같은 변형 행이면 true — 상세는 대표 행으로 보낸다 */
+  isVariant: boolean;
+  /** 같은 브랜드의 다른 신버거 (이 묶음 제외) */
+  siblings: MenuGroup[];
+}
+
+/** 상세: id 가 속한 묶음. 같은 브랜드 판매 중 전체를 읽어 묶어야 세트 변형이 합쳐진다 */
+export const getMenuGroupById = cache(async (id: string): Promise<MenuGroupLookup | null> => {
+  const menu = await getMenuById(id);
+  if (!menu) return null;
+
+  const supabase = await createClient();
+  const [{ data: menusData, error: menusError }, { data: statsData, error: statsError }] = await Promise.all([
+    supabase.from("menus").select("*").eq("brand", menu.brand).eq("curated_hidden", false),
+    supabase.from("menu_review_stats").select("*"),
+  ]);
+  if (menusError) throw new Error(menusError.message);
+  if (statsError) throw new Error(statsError.message);
+
+  const menus = withStats((menusData ?? []) as Menu[], (statsData ?? []) as MenuReviewStats[]);
+  // 내려간 메뉴의 상세도 열려야 하므로 is_active 로 거르지 않는다. 형제 목록만 판매 중 신메뉴로
+  const groups = groupVariants(menus);
+  const group = groups.find((g) => g.members.some((m) => m.id === id));
+  if (!group) return null;
+
+  const siblings = sortNewest(
+    groups.filter((g) => g.key !== group.key && g.is_new && g.representative.is_active && isBurger(g.representative)),
+  );
+  return { group, isVariant: group.representative.id !== id, siblings };
+});
+
 export const getMenuById = cache(async (id: string): Promise<MenuWithStats | null> => {
   if (!hasSupabaseEnv) return null;
 
@@ -108,18 +141,4 @@ export const getMenuById = cache(async (id: string): Promise<MenuWithStats | nul
   if (statsError) throw new Error(statsError.message);
 
   return withStats([menu as Menu], (statsData ?? []) as MenuReviewStats[])[0] ?? null;
-});
-
-export const getReviewsByMenuId = cache(async (menuId: string): Promise<Review[]> => {
-  if (!hasSupabaseEnv) return [];
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("menu_id", menuId)
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-  return (data ?? []) as Review[];
 });

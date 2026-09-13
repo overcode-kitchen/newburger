@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BrandChips } from "@/components/brand-chips";
 import { BrandMark } from "@/components/brand-mark";
 import { MenuCard } from "@/components/menu-card";
+import { RecordButton } from "@/components/record-button";
 import { ErrorState } from "@/components/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,10 +80,8 @@ const menuCardGroupPriced: MenuGroup = {
 };
 
 const menuDetailInfoSamples: ReadonlyArray<{ label: string; value: string }> = [
-  { label: "단품", value: "8,500원" },
-  { label: "세트", value: "11,800원" },
-  { label: "출시일", value: "2026. 4. 9." },
-  { label: "평균 별점", value: "★ 4.6 (128개)" },
+  { label: "가격", value: "8,500원 · 세트 11,800원 · 라지세트 12,500원" },
+  { label: "칼로리", value: "730 kcal" },
 ];
 
 export interface DesignPreviewItem {
@@ -216,31 +215,26 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
   {
     name: "MenuDetail Patterns",
     sourcePath: "src/app/menu/[id]/page.tsx",
-    notes: "상세 페이지 정보카드/후기 피드 UI 패턴",
+    notes: "상세 정보 목록(있는 값만) · 하단 액션 바(브랜드에서 보기 + 먹었어요)",
     render: () => (
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="max-w-md space-y-4">
+        <dl className="divide-y divide-border rounded-2xl bg-card px-4 shadow-sm ring-1 ring-border/60">
           {menuDetailInfoSamples.map((item) => (
-            <Card key={item.label} className="rounded-2xl border-border/70 bg-muted/30">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
-                <p className="text-base font-semibold">{item.value}</p>
-              </CardContent>
-            </Card>
+            <div key={item.label} className="flex justify-between gap-4 py-3 text-sm">
+              <dt className="shrink-0 text-muted-foreground">{item.label}</dt>
+              <dd className="text-right tabular-nums">{item.value}</dd>
+            </div>
           ))}
+        </dl>
+        <div className="flex gap-2">
+          <span className="inline-flex h-12 flex-1 items-center justify-center rounded-2xl bg-primary text-base font-bold text-primary-foreground">
+            버거킹에서 보기 ↗
+          </span>
+          <RecordButton menuId="00000000-0000-4000-8000-000000000001" menuName="통새우 와퍼" recorded={false} />
         </div>
-        <Card className="rounded-2xl border-border/70 p-4">
-          <div className="mb-2 flex items-center justify-between text-sm">
-            <p className="font-medium">★ 5</p>
-            <p className="text-muted-foreground">2026. 04. 14. 14:22</p>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            소스 조합이 좋아서 재구매 의사가 있는 메뉴라는 예시 후기를 표시합니다.
-          </p>
-          <div className="mt-3">
-            <Badge variant="outline">후기 아이템 예시</Badge>
-          </div>
-        </Card>
+        <p className="text-xs text-muted-foreground">
+          <Badge variant="outline">프리뷰</Badge> 먹었어요를 누르면 실제 기록 액션이 호출됩니다 (없는 id 라 실패)
+        </p>
       </div>
     ),
   },

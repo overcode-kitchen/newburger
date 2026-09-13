@@ -24,8 +24,8 @@ export function ShareButton({ title }: ShareButtonProps) {
   }
 
   return (
-    <Button type="button" variant="outline" onClick={onCopy} aria-label={`${title} 링크 공유`}>
-      {copied ? "복사 완료!" : "공유하기"}
+    <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={onCopy} aria-label={`${title} 링크 공유`}>
+      {copied ? "복사됨" : "공유"}
     </Button>
   );
 }

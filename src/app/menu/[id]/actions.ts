@@ -1,41 +1,23 @@
 "use server";
 
-import { createHash } from "node:crypto";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getClientId } from "@/lib/client-id";
+import { createRecord, type RecordError } from "@/lib/records";
 
-export async function createReview(formData: FormData) {
-  const menuId = String(formData.get("menu_id") ?? "");
-  const rating = Number(formData.get("rating"));
-  const commentValue = String(formData.get("comment") ?? "").trim();
-  const comment = commentValue.length > 0 ? commentValue : null;
+export interface RecordResult {
+  ok: boolean;
+  created?: boolean;
+  recordId?: string;
+  error?: RecordError;
+}
 
-  if (!menuId) throw new Error("menu_id is required.");
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    throw new Error("rating must be 1-5.");
-  }
+/** 먹었어요. 같은 브라우저 같은 메뉴는 1회 — 이미 있으면 그 기록을 돌려준다 */
+export async function recordMenu(menuId: string): Promise<RecordResult> {
+  const clientId = await getClientId();
+  const result = await createRecord(clientId, menuId);
+  if ("error" in result) return { ok: false, error: result.error };
 
-  const headersStore = await headers();
-  const seed = [
-    headersStore.get("x-forwarded-for"),
-    headersStore.get("user-agent"),
-    headersStore.get("accept-language"),
-  ]
-    .filter(Boolean)
-    .join("|");
-  const ipHash = createHash("sha256").update(seed || "anonymous").digest("hex");
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("reviews").insert({
-    menu_id: menuId,
-    rating,
-    comment,
-    ip_hash: ipHash,
-  });
-
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/");
   revalidatePath(`/menu/${menuId}`);
+  revalidatePath("/");
+  return { ok: true, created: result.created, recordId: result.record.id };
 }

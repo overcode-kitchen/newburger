@@ -1,234 +1,170 @@
-import Link from "next/link";
-import Image from "next/image";
-import { notFound } from "next/navigation";
-import { ReviewRatingInput } from "@/components/review-rating-input";
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { BrandMark } from "@/components/brand-mark";
+import { MenuCard } from "@/components/menu-card";
+import { MenuImage } from "@/components/menu-image";
+import { RecordButton } from "@/components/record-button";
 import { ShareButton } from "@/components/share-button";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { getMenuById, getReviewsByMenuId, hasSupabaseEnv } from "@/lib/menu-data";
-import { isNew } from "@/lib/menu-rules";
-import {
-  BRAND_LABELS,
-  BRAND_LOGOS,
-  formatDate,
-  formatPrice,
-} from "@/lib/newburger";
+import { getClientId } from "@/lib/client-id";
+import { getMenuGroupById, hasSupabaseEnv } from "@/lib/menu-data";
+import { ENDING_SOON_DAYS, daysUntil, effectiveDate } from "@/lib/menu-rules";
+import { BRAND_LABELS, BRAND_SITES, formatMonthDay, formatPrice } from "@/lib/newburger";
+import { findMyRecord, getRecordStats } from "@/lib/records";
 import { cn } from "@/lib/utils";
-import type { MenuWithStats } from "@/types";
-import { createReview } from "./actions";
 
 interface MenuDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-function MenuDetailBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-black/15 sm:max-w-56",
-        "bg-white/85 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm",
-      )}
-    >
-      <Image
-        src={BRAND_LOGOS[brand].src}
-        alt=""
-        width={BRAND_LOGOS[brand].width}
-        height={BRAND_LOGOS[brand].height}
-        className="h-3 w-auto shrink-0 opacity-90"
-        aria-hidden
-      />
-      <span className="truncate">{BRAND_LABELS[brand]}</span>
-    </span>
-  );
+export async function generateMetadata({ params }: MenuDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const lookup = hasSupabaseEnv ? await getMenuGroupById(id) : null;
+  if (!lookup) return {};
+  const { group } = lookup;
+  return {
+    title: `${group.name} · ${BRAND_LABELS[group.brand]} · 뉴버거`,
+    description: group.representative.description ?? `${BRAND_LABELS[group.brand]} ${group.name}`,
+  };
 }
 
-function formatPriceLabel(price: number | null | undefined): string {
-  if (typeof price !== "number" || price <= 0) return "가격 정보 준비 중";
-  return formatPrice(price);
-}
-
+/**
+ * 상세 = "갈지 말지 3초 판단 → 브랜드로 보냄 → 먹기 직전에 기록".
+ * 있는 정보만 그린다 — 없는 값에 "정보 없음" 라벨을 만들지 않는다. 가격 없는 브랜드는 가격 블록 자체가 없다.
+ * "공식" 이라는 단어는 쓰지 않는다 (docs/legal/brand-mark-policy.md).
+ */
 export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
   const { id } = await params;
-  const menu = await getMenuById(id);
-  const reviews = await getReviewsByMenuId(id);
+  if (!hasSupabaseEnv) notFound();
 
-  if (!menu && hasSupabaseEnv) notFound();
+  const lookup = await getMenuGroupById(id);
+  if (!lookup) notFound();
+  // 세트 같은 변형 행 id 로 들어오면 대표 행으로. 기록·공유 링크가 한 곳에 모이게
+  if (lookup.isVariant) redirect(`/menu/${lookup.group.representative.id}`);
 
-  if (!hasSupabaseEnv) {
-    return (
-      <main className="mx-auto w-full max-w-3xl px-4 py-10">
-        <p className="rounded-lg border bg-muted p-4 text-sm text-muted-foreground">
-          Supabase 환경변수가 비어있습니다. `.env.local` 값을 채운 뒤 다시
-          시도해 주세요.
-        </p>
-      </main>
-    );
-  }
+  const { group, siblings } = lookup;
+  const menu = group.representative;
+  const label = BRAND_LABELS[group.brand];
 
-  if (!menu) return notFound();
+  const [clientId, stats] = await Promise.all([getClientId(), getRecordStats()]);
+  const myRecord = await findMyRecord(clientId, menu.id);
+  const recordCount = group.members.reduce((sum, m) => sum + (stats.get(m.id) ?? 0), 0);
 
-  const imageSrc = menu.image_url?.trim() ?? "";
-  const hasImage = imageSrc.length > 0;
+  const date = effectiveDate(menu);
+  const endsIn = menu.end_date ? daysUntil(menu.end_date) : null;
+  const status = !menu.is_active
+    ? { text: "판매 종료", tone: "muted" as const }
+    : endsIn !== null && endsIn <= ENDING_SOON_DAYS
+      ? { text: `곧 종료 · ${formatMonthDay(menu.end_date ?? "")}까지`, tone: "danger" as const }
+      : menu.end_date
+        ? { text: `${formatMonthDay(menu.end_date)}까지`, tone: "outline" as const }
+        : { text: "판매 중", tone: "outline" as const };
+
+  const priceLine = [
+    menu.price_single ? formatPrice(menu.price_single) : null,
+    ...group.variants.map((v) => `${v.label} ${formatPrice(v.price ?? 0)}`),
+  ].filter(Boolean);
+  const hasInfo = priceLine.length > 0 || Boolean(menu.calories_text);
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <Link href="/" className="mb-4 inline-block text-sm text-muted-foreground hover:underline">
-        ← 홈으로
-      </Link>
-
-      <Card className="overflow-hidden rounded-3xl border-border/70">
-        <div className="relative aspect-[4/3] bg-muted sm:aspect-[16/9]">
-          {hasImage ? (
-            <Image
-              src={imageSrc}
-              alt={menu.name}
-              fill
-              sizes="(max-width: 768px) 100vw, 1200px"
-              className="object-cover object-center"
-              priority
-            />
-          ) : (
-            <div className="absolute inset-0 bg-muted" aria-hidden />
-          )}
-
-          <div className="absolute left-0 right-0 top-0 z-30 flex items-start justify-end gap-1 p-4">
-            {menu.is_limited && (
-              <Badge
-                variant="outline"
-                className="border-black/20 bg-white/85 text-xs text-foreground backdrop-blur-sm"
-              >
-                한정
-              </Badge>
-            )}
-            {isNew(menu) && (
-              <Badge className="border-black/10 bg-white/95 text-xs text-foreground">NEW</Badge>
-            )}
+    <>
+      <SiteHeader right={<ShareButton title={group.name} />} />
+      <main className="mx-auto w-full min-w-0 max-w-2xl flex-1 px-4 pb-28 sm:px-6">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-menu-image-matte">
+          <div className="absolute inset-4">
+            <MenuImage src={menu.image_url} alt={group.name} sizes="(max-width: 768px) 100vw, 672px" priority className="drop-shadow-lg" />
           </div>
-
-          <div className="absolute inset-x-0 bottom-0 z-30 space-y-3 bg-gradient-to-t from-background/92 via-background/55 to-transparent p-5 pt-20 sm:p-6 sm:pt-24">
-            <MenuDetailBrandChip brand={menu.brand} />
-            <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-              {menu.name}
-            </h1>
-            {menu.description ? (
-              <p className="max-w-3xl text-sm leading-relaxed text-foreground/85">{menu.description}</p>
-            ) : null}
-            <p className="text-sm text-foreground/85">
-              ★ {menu.average_rating.toFixed(1)}
-              <span className="ml-1 text-muted-foreground">({menu.review_count})</span>
-            </p>
-          </div>
+          <Badge
+            variant={status.tone === "outline" ? "outline" : "default"}
+            className={cn(
+              "absolute right-3 top-3 text-xs font-semibold backdrop-blur-sm",
+              status.tone === "outline" && "border-black/15 bg-white/85 text-foreground",
+              status.tone === "danger" && "border-transparent bg-destructive text-white",
+              status.tone === "muted" && "border-transparent bg-foreground/80 text-background",
+            )}
+          >
+            {status.text}
+          </Badge>
         </div>
-        <CardContent className="space-y-6 p-5 sm:p-6">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Card className="rounded-2xl border-border/70 bg-muted/30">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">단품</p>
-                <p className="text-xl font-semibold">{formatPriceLabel(menu.price_single)}</p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/70 bg-muted/30">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">세트</p>
-                <p className="text-xl font-semibold">{formatPriceLabel(menu.price_set)}</p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/70 bg-muted/30">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">출시일</p>
-                <p className="text-base font-semibold">{formatDate(menu.release_date)}</p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/70 bg-muted/30">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">평균 별점</p>
-                <p className="text-base font-semibold">
-                  ★ {menu.average_rating.toFixed(1)} ({menu.review_count}개)
-                </p>
-              </CardContent>
-            </Card>
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card className="rounded-2xl border-border/70">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">판매 기간</p>
-                <p className="text-sm font-medium">
-                  {menu.end_date ? `${formatDate(menu.release_date)} ~ ${formatDate(menu.end_date)}` : "상시 판매"}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border-border/70">
-              <CardContent className="space-y-1 p-4">
-                <p className="text-xs font-medium text-muted-foreground">칼로리</p>
-                <p className="text-sm font-medium">
-                  {menu.calories ? `${menu.calories} kcal` : "정보 없음"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          <BrandMark brand={group.brand} className="font-semibold text-foreground" />
+          {date && (
+            <>
+              <span aria-hidden>·</span>
+              <span>
+                {formatMonthDay(date)} {menu.release_date || menu.curated_release_date ? "출시" : "확인"}
+              </span>
+            </>
+          )}
+          {menu.is_limited && (
+            <>
+              <span aria-hidden>·</span>
+              <span>한정</span>
+            </>
+          )}
+        </div>
+        <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight">{group.name}</h1>
+        {myRecord && <p className="mt-2 text-sm font-semibold text-primary">✓ 먹어봤어요 · 병에 있어요</p>}
 
-          <div className="flex flex-wrap gap-2">
-            {menu.official_link && (
-              <Button
-                render={<a href={menu.official_link} target="_blank" rel="noopener noreferrer" />}
-              >
-                공식 링크
-              </Button>
-            )}
-            <ShareButton title={menu.name} />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
-      <Card className="rounded-3xl border-border/70 p-5 sm:p-6">
-        <CardTitle className="mb-4 text-lg">후기 작성</CardTitle>
-        <form action={createReview} className="space-y-4">
-          <input type="hidden" name="menu_id" value={menu.id} />
-          <ReviewRatingInput name="rating" />
-          <div className="space-y-1">
-            <label htmlFor="comment" className="text-sm font-medium">
-              후기 (선택)
-            </label>
-            <textarea
-              id="comment"
-              name="comment"
-              maxLength={500}
-              rows={4}
-              placeholder="맛, 양, 재구매 의사 등을 자유롭게 남겨주세요."
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <Button type="submit">후기 등록</Button>
-        </form>
-      </Card>
-
-      <Card className="rounded-3xl border-border/70 p-5 sm:p-6">
-        <CardTitle className="mb-4 text-lg">후기 피드 {reviews.length}개</CardTitle>
-        <div className="space-y-3">
-          {reviews.map((review) => (
-            <article key={review.id} className="rounded-2xl border border-border/70 bg-card p-4">
-              <div className="mb-1 flex items-center justify-between text-sm">
-                <p className="font-medium">★ {review.rating}</p>
-                <p className="text-muted-foreground">
-                  {new Date(review.created_at).toLocaleString("ko-KR")}
-                </p>
+        {hasInfo && (
+          <dl className="mt-4 divide-y divide-border rounded-2xl bg-card px-4 shadow-sm ring-1 ring-border/60">
+            {priceLine.length > 0 && (
+              <div className="flex justify-between gap-4 py-3 text-sm">
+                <dt className="shrink-0 text-muted-foreground">가격</dt>
+                <dd className="text-right tabular-nums">{priceLine.join(" · ")}</dd>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {review.comment || "텍스트 후기는 없습니다."}
-              </p>
-            </article>
-          ))}
-          {reviews.length === 0 && (
-            <p className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-              아직 작성된 후기가 없습니다.
-            </p>
-          )}
+            )}
+            {menu.calories_text && (
+              <div className="flex justify-between gap-4 py-3 text-sm">
+                <dt className="shrink-0 text-muted-foreground">칼로리</dt>
+                <dd className="text-right tabular-nums">{menu.calories_text} kcal</dd>
+              </div>
+            )}
+          </dl>
+        )}
+        <p className="mt-2 text-xs text-muted-foreground">
+          {priceLine.length > 0 ? "가격은 변동될 수 있어요 · 매장에서 확인해 주세요" : `가격은 ${label}에서 확인해 주세요`}
+        </p>
+
+        {menu.description && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{menu.description}</p>}
+
+        {recordCount > 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            <strong className="font-semibold text-foreground">{recordCount}명</strong>이 도전했어요
+          </p>
+        )}
+
+        {siblings.length > 0 && (
+          <section className="mt-8" aria-labelledby="siblings">
+            <h2 id="siblings" className="mb-3 text-base font-bold tracking-tight">
+              {label}의 다른 신버거
+            </h2>
+            <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6">
+              {siblings.map((s) => (
+                <MenuCard key={s.key} group={s} variant="mini" />
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent pb-[max(env(safe-area-inset-bottom),1rem)] pt-6">
+        <div className="mx-auto flex w-full max-w-2xl gap-2 px-4 sm:px-6">
+          <a
+            href={menu.official_link ?? BRAND_SITES[group.brand]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-2xl bg-primary text-base font-bold text-primary-foreground transition hover:bg-primary/90"
+          >
+            {label}에서 보기 ↗
+          </a>
+          <RecordButton menuId={menu.id} menuName={group.name} recorded={Boolean(myRecord)} />
         </div>
-      </Card>
       </div>
-    </main>
+      <SiteFooter />
+    </>
   );
 }

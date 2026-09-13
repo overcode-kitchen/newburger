@@ -9,8 +9,8 @@ import type { MenuGroup } from "@/types";
 
 interface MenuCardProps {
   group: MenuGroup;
-  /** grid: 2열 카드 · rail: "이번 주" 가로 레일의 큰 카드 (출시일 스탬프 포함) */
-  variant?: "grid" | "rail";
+  /** grid: 2열 카드 · rail: "이번 주" 가로 레일의 큰 카드 (출시일 스탬프 포함) · mini: 상세 하단 가로 목록 */
+  variant?: "grid" | "rail" | "mini";
   priority?: boolean;
 }
 
@@ -24,6 +24,7 @@ interface MenuCardProps {
 export function MenuCard({ group, variant = "grid", priority = false }: MenuCardProps) {
   const menu = group.representative;
   const isRail = variant === "rail";
+  const isMini = variant === "mini";
   const endsIn = menu.end_date ? daysUntil(menu.end_date) : null;
   const endingSoon = endsIn !== null && endsIn <= ENDING_SOON_DAYS;
 
@@ -33,7 +34,9 @@ export function MenuCard({ group, variant = "grid", priority = false }: MenuCard
       className={cn(
         "group relative block overflow-hidden rounded-3xl bg-menu-image-matte shadow-sm ring-1 ring-border/60",
         "transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/30",
-        isRail ? "aspect-square w-3/4 shrink-0 snap-start" : "aspect-[4/5] w-full",
+        isRail && "aspect-square w-3/4 shrink-0 snap-start",
+        isMini && "aspect-[4/5] w-36 shrink-0 snap-start",
+        !isRail && !isMini && "aspect-[4/5] w-full",
       )}
     >
       {/* 하단 오버레이 영역을 비워 두려고 이미지 박스를 위쪽에 잡는다 */}
@@ -81,7 +84,7 @@ export function MenuCard({ group, variant = "grid", priority = false }: MenuCard
         <h3
           className={cn(
             "line-clamp-2 font-bold leading-tight tracking-tight text-foreground",
-            isRail ? "text-2xl" : "text-base",
+            isRail ? "text-2xl" : isMini ? "text-sm" : "text-base",
           )}
         >
           {group.name}
