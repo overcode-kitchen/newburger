@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandChips } from "@/components/brand-chips";
+import { HeaderJar } from "@/components/header-jar";
 import { MenuCard } from "@/components/menu-card";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -24,11 +25,14 @@ export default async function Home({ searchParams }: HomeProps) {
     <>
       <SiteHeader
         right={
-          crawledAt && (
-            <span className="font-mono text-xs text-muted-foreground" title="마지막 수집 시각">
-              {formatCrawledAt(crawledAt)} 갱신
-            </span>
-          )
+          <>
+            {crawledAt && (
+              <span className="font-mono text-xs text-muted-foreground" title="마지막 수집 시각">
+                {formatCrawledAt(crawledAt)} 갱신
+              </span>
+            )}
+            <HeaderJar />
+          </>
         }
       />
       <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-12 sm:px-6 lg:px-8">

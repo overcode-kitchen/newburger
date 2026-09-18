@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BrandChips } from "@/components/brand-chips";
 import { BrandMark } from "@/components/brand-mark";
+import { HeaderJar } from "@/components/header-jar";
 import { MenuCard } from "@/components/menu-card";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -60,7 +61,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader right={<HeaderJar />} />
       <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-12 sm:px-6 lg:px-8">
         <div className="pb-3">
           <h1 className="text-2xl font-bold tracking-tight">

@@ -2,8 +2,8 @@ import "server-only";
 import { cache } from "react";
 import { createAdminClient, hasAdminEnv } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { todayKST } from "@/lib/menu-rules";
-import type { MenuRecord, MenuRecordStats } from "@/types";
+import { splitVariantName, todayKST } from "@/lib/menu-rules";
+import type { Brand, Menu, MenuRecord, MenuRecordStats } from "@/types";
 
 /** 허위 기록 방지는 사진이 아니라 한도로 한다: 같은 메뉴 1회(unique) + 하루 이 건수 */
 export const DAILY_RECORD_LIMIT = 3;
@@ -103,6 +103,47 @@ export async function signPhotoUrls(paths: string[]): Promise<Map<string, string
   for (const item of data ?? []) if (item.signedUrl && item.path) out.set(item.path, item.signedUrl);
   return out;
 }
+
+/** 병 안의 스티커 하나. 사진이 있으면 원형 사진 스티커, 없으면 브랜드 누끼 스티커 */
+export interface JarSticker {
+  recordId: string;
+  menuId: string;
+  name: string;
+  brand: Brand;
+  kind: "photo" | "cut";
+  /** 사진이면 서명 URL(1시간), 누끼면 브랜드 원본 URL. 둘 다 없으면 null → 기본 이미지 */
+  image: string | null;
+  createdAt: string;
+}
+
+/** 내 병. 기록 + 메뉴 표시 정보 + 사진 서명 URL */
+export const getMyJar = cache(async (clientId: string | null): Promise<JarSticker[]> => {
+  const records = await getMyRecords(clientId);
+  if (records.length === 0) return [];
+
+  const [{ data: menusData }, signed] = await Promise.all([
+    createAdminClient().from("menus").select("id, name, brand, image_url").in("id", records.map((r) => r.menu_id)),
+    signPhotoUrls(records.map((r) => r.photo_path).filter((p): p is string => p !== null)),
+  ]);
+  const menus = new Map(((menusData ?? []) as Pick<Menu, "id" | "name" | "brand" | "image_url">[]).map((m) => [m.id, m]));
+
+  return records.flatMap((r) => {
+    const menu = menus.get(r.menu_id);
+    if (!menu) return [];
+    const photo = r.photo_path ? (signed.get(r.photo_path) ?? null) : null;
+    return [
+      {
+        recordId: r.id,
+        menuId: r.menu_id,
+        name: splitVariantName(menu.name).base,
+        brand: menu.brand,
+        kind: photo ? "photo" : "cut",
+        image: photo ?? menu.image_url,
+        createdAt: r.created_at,
+      } satisfies JarSticker,
+    ];
+  });
+});
 
 /** "n명이 도전했어요". anon 뷰라 일반 클라이언트로 읽는다 */
 export const getRecordStats = cache(async (): Promise<Map<string, number>> => {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
+import { HeaderJar } from "@/components/header-jar";
 import { MenuCard } from "@/components/menu-card";
 import { MenuImage } from "@/components/menu-image";
 import { RecordButton } from "@/components/record-button";
@@ -12,7 +13,7 @@ import { getClientId } from "@/lib/client-id";
 import { getMenuGroupById, hasSupabaseEnv } from "@/lib/menu-data";
 import { ENDING_SOON_DAYS, daysUntil, effectiveDate } from "@/lib/menu-rules";
 import { BRAND_LABELS, BRAND_SITES, formatMonthDay, formatPrice } from "@/lib/newburger";
-import { findMyRecord, getRecordStats } from "@/lib/records";
+import { findMyRecord, getMyJar, getRecordStats } from "@/lib/records";
 import { cn } from "@/lib/utils";
 
 interface MenuDetailPageProps {
@@ -49,7 +50,7 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
   const label = BRAND_LABELS[group.brand];
 
   const [clientId, stats] = await Promise.all([getClientId(), getRecordStats()]);
-  const myRecord = await findMyRecord(clientId, menu.id);
+  const [myRecord, jar] = await Promise.all([findMyRecord(clientId, menu.id), getMyJar(clientId)]);
   const recordCount = group.members.reduce((sum, m) => sum + (stats.get(m.id) ?? 0), 0);
 
   const date = effectiveDate(menu);
@@ -70,7 +71,14 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
 
   return (
     <>
-      <SiteHeader right={<ShareButton title={group.name} />} />
+      <SiteHeader
+        right={
+          <>
+            <ShareButton title={group.name} />
+            <HeaderJar />
+          </>
+        }
+      />
       <main className="mx-auto w-full min-w-0 max-w-2xl flex-1 px-4 pb-28 sm:px-6">
         <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-menu-image-matte">
           <div className="absolute inset-4">
@@ -161,7 +169,14 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
           >
             {label}에서 보기 ↗
           </a>
-          <RecordButton menuId={menu.id} menuName={group.name} recorded={Boolean(myRecord)} />
+          <RecordButton
+            menuId={menu.id}
+            menuName={group.name}
+            brand={group.brand}
+            imageUrl={menu.image_url}
+            recorded={Boolean(myRecord)}
+            stickers={jar}
+          />
         </div>
       </div>
       <SiteFooter />

@@ -230,7 +230,14 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
           <span className="inline-flex h-12 flex-1 items-center justify-center rounded-2xl bg-primary text-base font-bold text-primary-foreground">
             버거킹에서 보기 ↗
           </span>
-          <RecordButton menuId="00000000-0000-4000-8000-000000000001" menuName="통새우 와퍼" recorded={false} />
+          <RecordButton
+            menuId="00000000-0000-4000-8000-000000000001"
+            menuName="통새우 와퍼"
+            brand="burgerking"
+            imageUrl={null}
+            recorded={false}
+            stickers={[]}
+          />
         </div>
         <p className="text-xs text-muted-foreground">
           <Badge variant="outline">프리뷰</Badge> 먹었어요를 누르면 실제 기록 액션이 호출됩니다 (없는 id 라 실패)
