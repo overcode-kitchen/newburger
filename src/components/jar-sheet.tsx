@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition } from "react";
+import { removeRecord } from "@/app/menu/[id]/actions";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { DEFAULT_MENU_IMAGE } from "@/components/menu-image";
 import { Button } from "@/components/ui/button";
@@ -13,7 +16,12 @@ interface JarSheetProps {
   stickers: JarSticker[];
   /** 방금 떨어뜨릴 스티커의 recordId — 낙하 연출 */
   dropping?: string | null;
+  /** 삭제 성공 시 부모 상태 갱신용 */
+  onRemoved?: (recordId: string) => void;
 }
+
+/** 길게 누르면 삭제 (결정 4). 실수로 안 되게 이 시간 이상 */
+const LONG_PRESS_MS = 600;
 
 /** 병 안 배치. 바닥부터 차곡차곡, 각도만 조금씩 — 위치가 매번 바뀌면 "내 병"이 아니라 남의 병처럼 보인다 */
 function slot(i: number, total: number) {
@@ -31,7 +39,32 @@ function slot(i: number, total: number) {
   };
 }
 
-export function JarSheet({ open, onClose, stickers, dropping = null }: JarSheetProps) {
+export function JarSheet({ open, onClose, stickers, dropping = null, onRemoved }: JarSheetProps) {
+  const router = useRouter();
+  const [target, setTarget] = useState<JarSticker | null>(null);
+  const [pending, startTransition] = useTransition();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function pressStart(s: JarSticker) {
+    timer.current = setTimeout(() => setTarget(s), LONG_PRESS_MS);
+  }
+  function pressEnd() {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  }
+  function confirmRemove() {
+    if (!target) return;
+    const id = target.recordId;
+    startTransition(async () => {
+      const { ok } = await removeRecord(id);
+      if (ok) {
+        onRemoved?.(id);
+        router.refresh();
+      }
+      setTarget(null);
+    });
+  }
+
   return (
     <BottomSheet open={open} onClose={onClose} label="내 병" className="bg-jar-paper">
       <p className="text-center text-lg font-bold">
@@ -55,8 +88,13 @@ export function JarSheet({ open, onClose, stickers, dropping = null }: JarSheetP
             <div
               key={s.recordId}
               title={s.name}
+              onPointerDown={() => pressStart(s)}
+              onPointerUp={pressEnd}
+              onPointerLeave={pressEnd}
+              onPointerCancel={pressEnd}
+              onContextMenu={(e) => e.preventDefault()}
               className={cn(
-                "absolute flex items-center justify-center",
+                "absolute flex select-none items-center justify-center touch-none",
                 dropping === s.recordId && "animate-sticker-drop",
               )}
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.size}%`, aspectRatio: "1", "--r": `${p.r}deg`, transform: `rotate(${p.r}deg)` } as React.CSSProperties}
@@ -80,9 +118,27 @@ export function JarSheet({ open, onClose, stickers, dropping = null }: JarSheetP
         })}
       </div>
 
+      <p className="mt-1 text-center text-xs text-muted-foreground">스티커를 길게 누르면 지울 수 있어요</p>
       <Button type="button" variant="outline" className="mt-3 h-12 w-full rounded-2xl bg-card" onClick={onClose}>
         닫기
       </Button>
+
+      {target && (
+        <div role="alertdialog" aria-label="기록 삭제" className="mt-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/60">
+          <p className="text-sm font-semibold">{target.name} 기록을 지울까요?</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {target.kind === "photo" ? "사진도 같이 지워져요. 되돌릴 수 없어요." : "되돌릴 수 없어요."}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Button type="button" variant="outline" className="h-10 flex-1 rounded-xl" onClick={() => setTarget(null)}>
+              취소
+            </Button>
+            <Button type="button" variant="destructive" disabled={pending} className="h-10 flex-1 rounded-xl" onClick={confirmRemove}>
+              {pending ? "지우는 중…" : "지우기"}
+            </Button>
+          </div>
+        </div>
+      )}
     </BottomSheet>
   );
 }

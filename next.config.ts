@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // 상위 디렉터리 등 다른 lockfile 때문에 추적 루트가 어긋나는 것을 막음
   outputFileTracingRoot: process.cwd(),
+  experimental: {
+    // 인증샷 업로드 (기기에서 압축한 JPEG). 기본 1MB 는 여유가 없다
+    serverActions: { bodySizeLimit: "3mb" },
+  },
   images: {
     // 메뉴 이미지는 저장하지 않고 브랜드 원본 URL을 직접 참조한다.
     // 수집 브랜드가 늘면 여기에 도메인을 추가한다.

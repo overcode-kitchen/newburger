@@ -76,14 +76,18 @@ export async function createRecord(
   return { record: data as MenuRecord, created: true };
 }
 
-/** 사진을 올린 뒤 경로를 기록에 붙인다 */
-export async function attachPhoto(clientId: string, recordId: string, photoPath: string): Promise<void> {
-  const { error } = await createAdminClient()
-    .from("records")
-    .update({ photo_path: photoPath })
-    .eq("id", recordId)
-    .eq("client_id", clientId);
+/** 사진을 비공개 버킷에 올리고 기록에 경로를 붙인다. 경로는 {client_id}/{record_id}.jpg — 같은 기록에 다시 올리면 덮어쓴다 */
+export async function attachPhoto(clientId: string, recordId: string, photo: Blob): Promise<string> {
+  const db = createAdminClient();
+  const path = `${clientId}/${recordId}.jpg`;
+  const { error: uploadError } = await db.storage
+    .from(PHOTO_BUCKET)
+    .upload(path, photo, { contentType: "image/jpeg", upsert: true });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { error } = await db.from("records").update({ photo_path: path }).eq("id", recordId).eq("client_id", clientId);
   if (error) throw new Error(error.message);
+  return path;
 }
 
 export async function deleteRecord(clientId: string, recordId: string): Promise<void> {
