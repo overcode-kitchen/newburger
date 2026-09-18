@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getHomeSections, getLastCrawledAt, hasSupabaseEnv } from "@/lib/menu-data";
 import { BRAND_LABELS, formatCrawledAt, parseBrand } from "@/lib/newburger";
+import { countGroupRecords, getRecordStats } from "@/lib/records";
 
 interface HomeProps {
   searchParams: Promise<{ brand?: string }>;
@@ -18,7 +19,12 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const query = await searchParams;
   const selectedBrand = parseBrand(query.brand);
-  const [{ thisWeek, recent }, crawledAt] = await Promise.all([getHomeSections(selectedBrand), getLastCrawledAt()]);
+  const [{ thisWeek, recent }, crawledAt, recordStats] = await Promise.all([
+    getHomeSections(selectedBrand),
+    getLastCrawledAt(),
+    getRecordStats(),
+  ]);
+  const countOf = (memberIds: string[]) => countGroupRecords(recordStats, memberIds);
   const isEmpty = thisWeek.length === 0 && recent.length === 0;
 
   return (
@@ -56,7 +62,13 @@ export default async function Home({ searchParams }: HomeProps) {
             </h2>
             <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
               {thisWeek.map((group, i) => (
-                <MenuCard key={group.key} group={group} variant="rail" priority={i < 2} />
+                <MenuCard
+                  key={group.key}
+                  group={group}
+                  variant="rail"
+                  priority={i < 2}
+                  recordCount={countOf(group.members.map((m) => m.id))}
+                />
               ))}
             </div>
           </section>
@@ -72,7 +84,12 @@ export default async function Home({ searchParams }: HomeProps) {
           {recent.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
               {recent.map((group, i) => (
-                <MenuCard key={group.key} group={group} priority={thisWeek.length === 0 && i < 4} />
+                <MenuCard
+                  key={group.key}
+                  group={group}
+                  priority={thisWeek.length === 0 && i < 4}
+                  recordCount={countOf(group.members.map((m) => m.id))}
+                />
               ))}
             </div>
           ) : (

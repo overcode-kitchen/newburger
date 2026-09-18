@@ -13,7 +13,7 @@ import { getClientId } from "@/lib/client-id";
 import { getMenuGroupById, hasSupabaseEnv } from "@/lib/menu-data";
 import { ENDING_SOON_DAYS, daysUntil, effectiveDate } from "@/lib/menu-rules";
 import { BRAND_LABELS, BRAND_SITES, formatMonthDay, formatPrice } from "@/lib/newburger";
-import { findMyRecord, getMyJar, getRecordStats } from "@/lib/records";
+import { countGroupRecords, findMyRecord, getMyJar, getRecordStats } from "@/lib/records";
 import { cn } from "@/lib/utils";
 
 interface MenuDetailPageProps {
@@ -51,7 +51,7 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
 
   const [clientId, stats] = await Promise.all([getClientId(), getRecordStats()]);
   const [myRecord, jar] = await Promise.all([findMyRecord(clientId, menu.id), getMyJar(clientId)]);
-  const recordCount = group.members.reduce((sum, m) => sum + (stats.get(m.id) ?? 0), 0);
+  const recordCount = countGroupRecords(stats, group.members.map((m) => m.id));
 
   const date = effectiveDate(menu);
   const endsIn = menu.end_date ? daysUntil(menu.end_date) : null;

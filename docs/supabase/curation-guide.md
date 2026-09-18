@@ -139,6 +139,22 @@ limit 30;
 
 내려간 행은 지우지 않는다. 상세 페이지는 살아 있고, 아카이브가 이 기록으로 만들어진다.
 
+## 기록(먹어봤어요)과 사진
+
+`records` 는 사용자 데이터라 큐레이션 대상이 아니다. 다만 운영 중 볼 일이 있다.
+
+```sql
+-- 가장 많이 도전한 버거
+select m.brand, m.name, s.record_count
+from menu_record_stats s join menus m on m.id = s.menu_id
+order by s.record_count desc limit 20;
+
+-- 사진이 붙은 기록 수 (브랜드 이미지가 막힐 때의 보험이 얼마나 쌓였나)
+select count(*) filter (where photo_path is not null) as with_photo, count(*) as total from records;
+```
+
+사진은 `record-photos` 비공개 버킷에 `{client_id}/{record_id}.jpg` 로 있다. 대시보드 Storage 에서 볼 수 있고, 공개 전환·대표 이미지 승격은 사용자 이용 허락 문구(업로드 시 고지) 범위 안에서만.
+
 ## 규칙을 코드에서 바꿔야 할 때
 
 같은 판단을 여러 행에 반복하고 있다면 큐레이션이 아니라 규칙의 문제다. `src/lib/menu-rules.ts` 에서 고친다.

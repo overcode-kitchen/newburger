@@ -149,6 +149,11 @@ export const getMyJar = cache(async (clientId: string | null): Promise<JarSticke
   });
 });
 
+/** 묶음(세트 포함) 단위 도전 수 */
+export function countGroupRecords(stats: Map<string, number>, memberIds: string[]): number {
+  return memberIds.reduce((sum, id) => sum + (stats.get(id) ?? 0), 0);
+}
+
 /** "n명이 도전했어요". anon 뷰라 일반 클라이언트로 읽는다 */
 export const getRecordStats = cache(async (): Promise<Map<string, number>> => {
   const supabase = await createClient();

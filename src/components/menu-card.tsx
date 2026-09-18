@@ -12,6 +12,8 @@ interface MenuCardProps {
   /** grid: 2열 카드 · rail: "이번 주" 가로 레일의 큰 카드 (출시일 스탬프 포함) · mini: 상세 하단 가로 목록 */
   variant?: "grid" | "rail" | "mini";
   priority?: boolean;
+  /** "n명이 도전". 1명 이상일 때만 그린다 — 후기 0건 상태의 첫 사회적 신호 */
+  recordCount?: number;
 }
 
 /**
@@ -21,7 +23,7 @@ interface MenuCardProps {
  *  - 메타는 하나: 종료일 > 가격 > 없음. 없는 값은 자리도 없다
  *  - 브랜드는 로고 원형 마크만. 이름은 접근성 텍스트 (docs/legal/brand-mark-policy.md 예외 항목)
  */
-export function MenuCard({ group, variant = "grid", priority = false }: MenuCardProps) {
+export function MenuCard({ group, variant = "grid", priority = false, recordCount = 0 }: MenuCardProps) {
   const menu = group.representative;
   const isRail = variant === "rail";
   const isMini = variant === "mini";
@@ -89,9 +91,10 @@ export function MenuCard({ group, variant = "grid", priority = false }: MenuCard
         >
           {group.name}
         </h3>
-        {!menu.end_date && menu.price_single && (
-          <p className={cn("tabular-nums text-muted-foreground", isRail ? "text-sm" : "text-xs")}>
-            {formatPrice(menu.price_single)}
+        {(recordCount > 0 || (!menu.end_date && menu.price_single)) && (
+          <p className={cn("flex gap-2 tabular-nums text-muted-foreground", isRail ? "text-sm" : "text-xs")}>
+            {!menu.end_date && menu.price_single && <span>{formatPrice(menu.price_single)}</span>}
+            {recordCount > 0 && <span>{recordCount}명 도전</span>}
           </p>
         )}
       </div>
