@@ -11,6 +11,14 @@
 
 코드는 항상 **큐레이션 값 → 수집 값** 순으로 읽는다. 되돌리려면 `null`(또는 `false`)로 바꾸면 된다.
 
+## menus 에는 버거만 있다
+
+2026-09-22 결정: 테이블에 버거만 둔다. 음료·사이드·피자·치킨·2인 묶음팩은 크롤러가 수집해도 저장하지 않는다 (`crawler/sync.ts`). 기존 비버거 306행은 `pnpm cleanup:menus --apply` 로 삭제했다.
+
+- 검토 대상이 512행에서 206행으로 줄었다. Table Editor 로 훑을 수 있는 크기다.
+- **저장되지 않은 항목은 `curated_kind` 로 올릴 수 없다** — 행 자체가 없다. 넣고 싶으면 `src/lib/menu-rules.ts` 의 `BURGER_RULES` 를 고친다. 규칙을 고치면 다음 수집에 들어온다.
+- 반대로 저장된 행을 내리는 건 `curated_kind = 'other'` 로 가능하고, 그 값은 다음 수집에서도 유지된다 (다음 수집 때 저장 자체가 안 된다).
+
 ## 절대 고치지 않는 컬럼
 
 `name` · `category` · `badge` · `release_date` · `price_*` · `image_url` · `is_featured` · `is_active` 등 **수집 컬럼 전부**. 크롤러의 upsert 페이로드에 들어 있어 다음날 07:00 에 덮어써진다. 값이 틀렸다면 파서(`crawler/sources/*.ts`)를 고치는 게 맞다.

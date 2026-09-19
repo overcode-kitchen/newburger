@@ -49,6 +49,8 @@ pnpm crawl moms
 
 ## 동작 규칙
 
+- **버거만 저장한다** (2026-09-22 결정). 음료·사이드·피자·치킨·2인 묶음팩은 수집해도 DB 에 넣지 않는다. 판정은 `src/lib/menu-rules.ts` 의 `menuKindFromFields`, 로그의 `skipped` 가 걸러낸 수다. 기존 행에 `curated_kind` 가 있으면 그 값이 규칙보다 우선한다.
+- 경계 항목(맥도날드 해피 스낵의 "불고기 버거" 등)을 넣고 싶으면 `BURGER_RULES` 를 고친다. 저장이 안 된 행은 `curated_kind` 로 올릴 수 없다 — 행 자체가 없기 때문. 규칙을 고치면 다음 수집에 다시 들어온다.
 - `(brand, source_id)` 가 같으면 같은 메뉴. 이름이 바뀌어도 새 행을 만들지 않는다.
 - 이번 수집에 없는 메뉴는 삭제하지 않고 `is_active=false` 로 내린다. `last_seen_at` 은 마지막으로 목록에 있던 시각으로 남는다.
 - `first_seen_at`·`created_at` 은 upsert 시 건드리지 않아 최초값이 보존된다.

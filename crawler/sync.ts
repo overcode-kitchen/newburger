@@ -1,4 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { menuKindFromFields } from "../src/lib/menu-rules";
+import type { MenuKind } from "../src/types";
 import type { Brand, CrawledMenu } from "./types";
 
 /** 기존 활성 건수 대비 이 비율 미만이면 파서 손상으로 보고 반영하지 않는다 */
@@ -7,6 +9,8 @@ const MIN_SURVIVAL_RATIO = 0.5;
 export interface SyncResult {
   brand: Brand;
   seen: number;
+  /** 버거가 아니어서 저장하지 않은 수 */
+  skipped: number;
   created: number;
   returned: number;
   deactivated: number;
@@ -43,28 +47,41 @@ export async function syncBrand(
   try {
     const { data: existingRows, error: existingError } = await db
       .from("menus")
-      .select("source_id, is_active")
+      .select("source_id, is_active, curated_kind")
       .eq("brand", brand);
     if (existingError) throw new Error(`기존 목록 조회 실패: ${existingError.message}`);
 
-    const existing = new Map((existingRows ?? []).map((r) => [r.source_id as string, r.is_active as boolean]));
-    const existingActive = [...existing.values()].filter(Boolean).length;
+    const existing = new Map(
+      (existingRows ?? []).map((r) => [
+        r.source_id as string,
+        { active: r.is_active as boolean, curatedKind: r.curated_kind as MenuKind | null },
+      ]),
+    );
+    const existingActive = [...existing.values()].filter((r) => r.active).length;
+
+    // menus 테이블에는 버거만 둔다 (2026-09-22 결정). 음료·사이드·피자는 저장하지 않는다.
+    // 운영자가 curated_kind 로 내린/올린 판단이 규칙보다 우선한다 — 화면과 같은 순서.
+    const burgers = items.filter(
+      (m) => (existing.get(m.source_id)?.curatedKind ?? menuKindFromFields(m)) === "burger",
+    );
+    const skipped = items.length - burgers.length;
 
     // 파서가 깨져 목록이 텅 비거나 급감하면 전 메뉴가 비활성으로 쓸려 나간다.
     // 무인 실행에서 가장 위험한 실패라, 반영하지 않고 실패로 기록한다.
-    if (existingActive > 0 && items.length < existingActive * MIN_SURVIVAL_RATIO) {
+    if (existingActive > 0 && burgers.length < existingActive * MIN_SURVIVAL_RATIO) {
       throw new Error(
-        `수집 ${items.length}건 < 기존 활성 ${existingActive}건의 ${MIN_SURVIVAL_RATIO * 100}% — 파서 손상 의심, 반영 중단`,
+        `버거 ${burgers.length}건(수집 ${items.length}건) < 기존 활성 ${existingActive}건의 ${MIN_SURVIVAL_RATIO * 100}% — ` +
+          `파서 손상 의심, 반영 중단. 비버거 정리(pnpm cleanup:menus) 전이면 먼저 정리하세요`,
       );
     }
 
-    const seenIds = new Set(items.map((m) => m.source_id));
-    const created = items.filter((m) => !existing.has(m.source_id)).length;
+    const seenIds = new Set(burgers.map((m) => m.source_id));
+    const created = burgers.filter((m) => !existing.has(m.source_id)).length;
     // 내려갔다가 돌아온 메뉴 — 재출시. first_seen_at 은 옛날이라 이 시각이 출시일 대용이 된다
-    const returned = items.filter((m) => existing.get(m.source_id) === false).map((m) => m.source_id);
+    const returned = burgers.filter((m) => existing.get(m.source_id)?.active === false).map((m) => m.source_id);
 
     const now = new Date().toISOString();
-    const payload = items.map((m) => ({ ...m, is_active: true, last_seen_at: now }));
+    const payload = burgers.map((m) => ({ ...m, is_active: true, last_seen_at: now }));
 
     // PostgREST 요청 크기를 고려해 나눠 보낸다
     for (let i = 0; i < payload.length; i += 100) {
@@ -84,7 +101,7 @@ export async function syncBrand(
     }
 
     const gone = [...existing.entries()]
-      .filter(([id, active]) => active && !seenIds.has(id))
+      .filter(([id, row]) => row.active && !seenIds.has(id))
       .map(([id]) => id);
     if (gone.length > 0) {
       const { error } = await db
@@ -100,13 +117,13 @@ export async function syncBrand(
       .update({
         status: "ok",
         finished_at: new Date().toISOString(),
-        items_seen: items.length,
+        items_seen: burgers.length,
         items_new: created,
         items_gone: gone.length,
       })
       .eq("id", runId);
 
-    return { brand, seen: items.length, created, returned: returned.length, deactivated: gone.length };
+    return { brand, seen: burgers.length, skipped, created, returned: returned.length, deactivated: gone.length };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await db

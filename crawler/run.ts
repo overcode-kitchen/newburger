@@ -47,7 +47,7 @@ async function main() {
       const items = await source.crawl();
       const result = await syncBrand(db, source.brand, items);
       console.log(
-        `[${source.brand}] ok · seen=${result.seen} new=${result.created} returned=${result.returned} gone=${result.deactivated} · ${Date.now() - startedAt}ms`,
+        `[${source.brand}] ok · burger=${result.seen} skipped=${result.skipped} new=${result.created} returned=${result.returned} gone=${result.deactivated} · ${Date.now() - startedAt}ms`,
       );
     } catch (error) {
       failed += 1;

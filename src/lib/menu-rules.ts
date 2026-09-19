@@ -60,6 +60,8 @@ const BURGER_RULES: Readonly<Record<Brand, BurgerRule>> = {
       categories: /^(치킨&슈림프|올데이스낵&올데이킹)$/,
       name: /버거|와퍼|주니어/,
     },
+    // 2인 묶음팩("와주X불와주+프라이L+콜라L" 등)은 와퍼&주니어 분류지만 버거 단품이 아니다
+    excludeName: /(\+프라이|X2|X불|X롱|X콰|X와)/,
   },
   lotteria: {
     categories: /^버거$/,
@@ -79,10 +81,15 @@ function splitCategories(category: string | null): string[] {
     .filter(Boolean);
 }
 
-/** 결정 A. 큐레이션이 있으면 그 값, 없으면 브랜드별 카테고리 규칙 */
-export function menuKind(menu: Menu): MenuKind {
-  if (menu.curated_kind) return menu.curated_kind;
+/** 판정에 필요한 최소 필드. 크롤러의 CrawledMenu 도 이 모양을 만족한다 */
+export interface MenuKindFields {
+  brand: Brand;
+  name: string;
+  category: string | null;
+}
 
+/** 브랜드별 카테고리·이름 규칙만으로 판정. 큐레이션을 보지 않으므로 수집 단계에서도 쓸 수 있다 */
+export function menuKindFromFields(menu: MenuKindFields): MenuKind {
   const rule = BURGER_RULES[menu.brand];
   if (rule.excludeName?.test(menu.name)) return "other";
 
@@ -96,6 +103,11 @@ export function menuKind(menu: Menu): MenuKind {
     return "burger";
   }
   return "other";
+}
+
+/** 결정 A. 큐레이션이 있으면 그 값, 없으면 규칙 */
+export function menuKind(menu: Menu): MenuKind {
+  return menu.curated_kind ?? menuKindFromFields(menu);
 }
 
 export function isBurger(menu: Menu): boolean {
