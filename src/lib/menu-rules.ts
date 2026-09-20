@@ -50,8 +50,11 @@ interface BurgerRule {
 
 const BURGER_RULES: Readonly<Record<Brand, BurgerRule>> = {
   mcdonald: {
-    // 맥모닝·해피밀·해피 스낵은 버거가 섞여 있어도 1차 노출 대상이 아니다. 필요하면 curated_kind 로 올린다
     categories: /^(버거|맥런치)$/,
+    // 해피 스낵에도 단품 버거가 섞여 있다 ("불고기 버거"). 맥모닝은 일부러 뺀다 —
+    // 오전에만 팔아서, 점심 직전에 여는 사용자에게는 "가도 못 사는 것"이 된다.
+    // 해피밀은 아이 메뉴 묶음이라 단품 버거가 아니다.
+    ambiguous: { categories: /^해피 스낵$/, name: /버거/ },
   },
   burgerking: {
     categories: /^(와퍼&주니어|프리미엄|오리지널스&맥시멈)$/,
