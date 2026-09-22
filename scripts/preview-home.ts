@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import {
   displayBadge,
+  effectivePrice,
+  isPriceStale,
   groupVariants,
   homeSections,
   isBurger,
@@ -49,7 +51,10 @@ function formatGroup(g: MenuGroup): string {
   const flags = [g.is_new ? "NEW" : null, g.is_hot ? "HOT" : null, rep.is_limited ? "한정" : null]
     .filter(Boolean)
     .join(" ");
-  const price = [won(rep.price_single), ...g.variants.map((v) => `${v.label} ${won(v.price)}`)].join(" · ");
+  const ep = effectivePrice(rep);
+  const setParts = g.variants.length > 0 ? g.variants.map((v) => `${v.label} ${won(v.price)}`) : ep.set ? [`세트 ${won(ep.set)}`] : [];
+  const priceMark = ep.source === "curated" ? (isPriceStale(ep) ? " [가격 확인 필요]" : ` [가격 ${ep.checkedOn ?? "?"}]`) : "";
+  const price = [won(ep.single), ...setParts].join(" · ") + priceMark;
   const until = rep.end_date ? ` ~${rep.end_date}` : "";
   const dateSrc = rep.curated_release_date ? "큐레이션" : rep.release_date ? "브랜드" : rep.reactivated_at ? "재출시" : g.date ? "확인일" : "-";
   return [
@@ -129,6 +134,18 @@ async function main() {
   );
   if (droppedBadges.size > 0) {
     console.log(`\n## 화면에서 버려지는 뱃지 원문: ${[...droppedBadges].join(", ")}`);
+  }
+
+  const noPrice = shown.filter((g) => effectivePrice(g.representative).single === null);
+  if (noPrice.length > 0) {
+    console.log(`\n## 가격이 없는 신메뉴 ${noPrice.length}개 — curated_price_single 로 넣습니다`);
+    for (const g of noPrice) console.log(`  ${BRAND_LABELS[g.brand]}  ${g.name}`);
+  }
+
+  const stale = shown.filter((g) => isPriceStale(effectivePrice(g.representative)));
+  if (stale.length > 0) {
+    console.log(`\n## 확인한 지 오래된 가격 ${stale.length}개 — 다시 확인할 때입니다`);
+    for (const g of stale) console.log(`  ${BRAND_LABELS[g.brand]}  ${g.name}`);
   }
 
   const undated = shown.filter((g) => !g.date);

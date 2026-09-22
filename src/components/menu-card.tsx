@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { BrandMark } from "@/components/brand-mark";
 import { MenuImage } from "@/components/menu-image";
-import { ENDING_SOON_DAYS, daysUntil } from "@/lib/menu-rules";
+import { ENDING_SOON_DAYS, daysUntil, effectivePrice } from "@/lib/menu-rules";
 import { formatMonthDay, formatPrice } from "@/lib/newburger";
 import { cn } from "@/lib/utils";
 import type { MenuGroup } from "@/types";
@@ -28,6 +28,7 @@ export function MenuCard({ group, variant = "grid", priority = false, recordCoun
   const isRail = variant === "rail";
   const isMini = variant === "mini";
   const endsIn = menu.end_date ? daysUntil(menu.end_date) : null;
+  const price = effectivePrice(menu);
   const endingSoon = endsIn !== null && endsIn <= ENDING_SOON_DAYS;
 
   return (
@@ -91,9 +92,9 @@ export function MenuCard({ group, variant = "grid", priority = false, recordCoun
         >
           {group.name}
         </h3>
-        {(recordCount > 0 || (!menu.end_date && menu.price_single)) && (
+        {(recordCount > 0 || (!menu.end_date && price.single)) && (
           <p className={cn("flex gap-2 tabular-nums text-muted-foreground", isRail ? "text-sm" : "text-xs")}>
-            {!menu.end_date && menu.price_single && <span>{formatPrice(menu.price_single)}</span>}
+            {!menu.end_date && price.single && <span>{formatPrice(price.single)}</span>}
             {recordCount > 0 && <span>{recordCount}명 도전</span>}
           </p>
         )}

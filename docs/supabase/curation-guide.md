@@ -6,6 +6,8 @@
 |---|---|---|
 | `curated_kind` | `'burger'` · `'other'` · `null` | 버거 판정을 강제한다. `null` 이면 코드의 카테고리 규칙(`src/lib/menu-rules.ts` 의 `BURGER_RULES`)을 따른다 |
 | `curated_release_date` | `YYYY-MM-DD` · `null` | 출시일. 브랜드가 준 `release_date` 보다 우선한다. 신메뉴 판정(오늘 기준 180일)과 최신순 정렬에 쓰인다 |
+| `curated_price_single` · `curated_price_set` | 정수 · `null` | 운영자가 확인한 가격. 수집 가격보다 우선. **맥도날드·맘스터치는 웹에 가격이 없어 이 값만이 유일한 출처** |
+| `curated_price_checked` | `YYYY-MM-DD` | 가격을 확인한 날. 화면에 "9월 기준"으로 붙고, 120일 지나면 `preview:home` 이 "확인 필요"로 알린다. **가격을 넣을 땐 반드시 같이 넣는다** |
 | `curated_hidden` | `true` · `false` | `true` 면 판매 중이어도 홈·상세 어디에도 안 나온다 |
 | `curated_note` | 자유 텍스트 | 왜 고쳤는지 메모. 화면에 나오지 않는다 |
 
@@ -40,6 +42,7 @@
 | 파일 | 내용 |
 |---|---|
 | `2026-09-22_release_dates.sql` | 백필로 들어온 신메뉴 23묶음의 출시일 (보도자료 근거, 44행) |
+| `2026-09-22_prices.sql` | 맥도날드 3건 가격 (보도자료). 맘스터치 6건은 웹에 없어 템플릿만 |
 
 ## 검토 루프
 
@@ -170,6 +173,21 @@ select count(*) filter (where photo_path is not null) as with_photo, count(*) as
 ```
 
 사진은 `record-photos` 비공개 버킷에 `{client_id}/{record_id}.jpg` 로 있다. 대시보드 Storage 에서 볼 수 있고, 공개 전환·대표 이미지 승격은 사용자 이용 허락 문구(업로드 시 고지) 범위 안에서만.
+
+## 가격을 넣을 때
+
+맥도날드·맘스터치는 웹에 가격이 없다 — 맥도날드 공개 API 72필드에 가격 키가 없고, 맘스터치 상세 HTML 의 가격은 주석 처리된 `0원`이다. 파서를 고쳐서 될 일이 아니다.
+
+- **넣을 대상은 홈에 뜨는 신메뉴만.** 122묶음 전부를 수기로 관리할 수는 없다. `pnpm preview:home` 이 "가격이 없는 신메뉴"를 목록으로 알려준다
+- **대표 행에만** 넣는다. 묶음의 가격은 대표 행에서 읽는다
+- **확인일을 반드시 같이** 넣는다. 출처와 시점을 못 밝히는 가격은 넣지 않는다
+- **배달앱 가격을 쓰지 않는다.** 배달가는 매장가보다 비싸고, 가격 오표기는 브랜드가 실제로 반응하는 대표 트리거다 (docs/legal/brand-mark-policy.md)
+- 할인가(맥도날드 해피 스낵 등)를 넣을 땐 `curated_note` 에 정상가를 같이 적는다
+
+```sql
+select brand, name, curated_price_single, curated_price_set, curated_price_checked
+from menus where curated_price_checked is not null order by curated_price_checked;
+```
 
 ## 규칙을 코드에서 바꿔야 할 때
 

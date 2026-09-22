@@ -45,6 +45,9 @@ export interface Menu {
   // 큐레이션 · 운영자가 Supabase 에서 직접 고침. 크롤러가 덮어쓰지 않는다
   curated_kind: MenuKind | null;
   curated_release_date: string | null;
+  curated_price_single: number | null;
+  curated_price_set: number | null;
+  curated_price_checked: string | null;
   curated_hidden: boolean;
   curated_note: string | null;
 

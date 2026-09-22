@@ -50,6 +50,9 @@ create table public.menus (
   -- 코드는 항상 "큐레이션 값 ?? 수집 값" 순으로 읽는다
   curated_kind         text check (curated_kind is null or curated_kind in ('burger', 'other')),  -- 버거 판정 강제. null 이면 category 규칙
   curated_release_date date,                                                                       -- 출시일을 안 주는 브랜드용. release_date 보다 우선
+  curated_price_single integer check (curated_price_single is null or curated_price_single > 0),  -- 맥도날드·맘스터치는 웹에 가격이 없다
+  curated_price_set    integer check (curated_price_set    is null or curated_price_set    > 0),
+  curated_price_checked date,                                                                      -- 확인한 날. 화면의 "9월 기준"
   curated_hidden       boolean not null default false,                                             -- 판매 중이어도 사이트 전체에서 숨김
   curated_note         text,                                                                       -- 운영 메모. 화면 비노출
 

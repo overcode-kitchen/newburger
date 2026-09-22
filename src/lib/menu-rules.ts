@@ -162,6 +162,40 @@ export function daysUntil(date: string, today: string = todayKST()): number {
 /** 이 안에 끝나면 "곧 종료" */
 export const ENDING_SOON_DAYS = 7;
 
+/** 운영자가 넣은 가격이 이보다 오래되면 다시 확인할 때가 됐다 */
+export const PRICE_STALE_DAYS = 120;
+
+export interface EffectivePrice {
+  single: number | null;
+  set: number | null;
+  /** curated 면 운영자가 넣은 값 — 화면에 "n월 기준"을 붙인다 */
+  source: "brand" | "curated";
+  checkedOn: string | null;
+}
+
+/**
+ * 표시할 가격. 큐레이션 → 수집 순.
+ * 맥도날드·맘스터치는 웹에 가격이 없어 수집으로는 영원히 null 이므로, 운영자가 확인해 넣은 값만이 유일한 출처다.
+ * 그 값은 시점·매장에 따라 달라지므로 확인일을 함께 들고 다닌다.
+ */
+export function effectivePrice(menu: Menu): EffectivePrice {
+  if (menu.curated_price_single !== null || menu.curated_price_set !== null) {
+    return {
+      single: menu.curated_price_single,
+      set: menu.curated_price_set,
+      source: "curated",
+      checkedOn: menu.curated_price_checked,
+    };
+  }
+  return { single: menu.price_single, set: menu.price_set, source: "brand", checkedOn: null };
+}
+
+/** 확인한 지 오래된 큐레이션 가격인가 */
+export function isPriceStale(price: EffectivePrice, today: string = todayKST()): boolean {
+  if (price.source !== "curated" || !price.checkedOn) return false;
+  return daysBetween(price.checkedOn, today) > PRICE_STALE_DAYS;
+}
+
 /**
  * 결정 B. 판매 중이면서
  *  - 한정판(종료일이 있고 아직 안 지남)이면: 출시가 오래됐어도 포함 — "지금 아니면 못 먹는 것"은 도전 대상

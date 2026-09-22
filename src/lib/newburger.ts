@@ -96,6 +96,11 @@ export function formatPrice(price: number): string {
   return `${price.toLocaleString("ko-KR")}원`;
 }
 
+/** "2026-09-22" → "9월". 큐레이션 가격의 기준 시점 표시 */
+export function formatMonthLabel(dateValue: string): string {
+  return `${Number(dateValue.split("-")[1])}월`;
+}
+
 /** "2026-10-21" → "10/21". 카드처럼 좁은 곳용 */
 export function formatMonthDay(dateValue: string): string {
   const [, m, d] = dateValue.split("-");

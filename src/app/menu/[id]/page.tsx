@@ -11,8 +11,8 @@ import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { getClientId } from "@/lib/client-id";
 import { getMenuGroupById, hasSupabaseEnv } from "@/lib/menu-data";
-import { ENDING_SOON_DAYS, daysUntil, effectiveDate } from "@/lib/menu-rules";
-import { BRAND_LABELS, BRAND_SITES, formatMonthDay, formatPrice } from "@/lib/newburger";
+import { ENDING_SOON_DAYS, daysUntil, effectiveDate, effectivePrice } from "@/lib/menu-rules";
+import { BRAND_LABELS, BRAND_SITES, formatMonthDay, formatMonthLabel, formatPrice } from "@/lib/newburger";
 import { countGroupRecords, findMyRecord, getMyJar, getRecordStats } from "@/lib/records";
 import { cn } from "@/lib/utils";
 
@@ -63,10 +63,15 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
         ? { text: `${formatMonthDay(menu.end_date)}까지`, tone: "outline" as const }
         : { text: "판매 중", tone: "outline" as const };
 
-  const priceLine = [
-    menu.price_single ? formatPrice(menu.price_single) : null,
-    ...group.variants.map((v) => `${v.label} ${formatPrice(v.price ?? 0)}`),
-  ].filter(Boolean);
+  // 큐레이션 가격이 있으면 그것이 유일한 출처다 (맥도날드·맘스터치). 세트는 묶음 변형과 큐레이션 둘 다에서 올 수 있다
+  const price = effectivePrice(menu);
+  const setLines =
+    group.variants.length > 0
+      ? group.variants.map((v) => `${v.label} ${formatPrice(v.price ?? 0)}`)
+      : price.set
+        ? [`세트 ${formatPrice(price.set)}`]
+        : [];
+  const priceLine = [price.single ? formatPrice(price.single) : null, ...setLines].filter(Boolean);
   const hasInfo = priceLine.length > 0 || Boolean(menu.calories_text);
 
   return (
@@ -134,7 +139,11 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
           </dl>
         )}
         <p className="mt-2 text-xs text-muted-foreground">
-          {priceLine.length > 0 ? "가격은 변동될 수 있어요 · 매장에서 확인해 주세요" : `가격은 ${label}에서 확인해 주세요`}
+          {priceLine.length === 0
+            ? `가격은 ${label}에서 확인해 주세요`
+            : price.source === "curated" && price.checkedOn
+              ? `${formatMonthLabel(price.checkedOn)} 기준 · 일부 매장 가격이라 매장에 따라 다를 수 있어요`
+              : "가격은 변동될 수 있어요 · 매장에서 확인해 주세요"}
         </p>
 
         {menu.description && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{menu.description}</p>}
