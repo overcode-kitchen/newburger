@@ -51,6 +51,7 @@ const menuCardPreviewSample: MenuWithStats = {
   curated_price_single: null,
   curated_price_set: null,
   curated_price_checked: null,
+  curated_availability: null,
   curated_hidden: false,
   curated_note: null,
   raw: {},

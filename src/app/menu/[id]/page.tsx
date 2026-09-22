@@ -120,6 +120,12 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
           )}
         </div>
         <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight">{group.name}</h1>
+        {menu.curated_availability && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-sm text-foreground">
+            <span aria-hidden>📍</span>
+            {menu.curated_availability}
+          </p>
+        )}
         {myRecord && <p className="mt-2 text-sm font-semibold text-primary">✓ 먹어봤어요 · 병에 있어요</p>}
 
         {hasInfo && (

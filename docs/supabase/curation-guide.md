@@ -8,6 +8,7 @@
 | `curated_release_date` | `YYYY-MM-DD` · `null` | 출시일. 브랜드가 준 `release_date` 보다 우선한다. 신메뉴 판정(오늘 기준 180일)과 최신순 정렬에 쓰인다 |
 | `curated_price_single` · `curated_price_set` | 정수 · `null` | 운영자가 확인한 가격. 수집 가격보다 우선. **맥도날드·맘스터치는 웹에 가격이 없어 이 값만이 유일한 출처** |
 | `curated_price_checked` | `YYYY-MM-DD` | 가격을 확인한 날. 화면에 "9월 기준"으로 붙고, 120일 지나면 `preview:home` 이 "확인 필요"로 알린다. **가격을 넣을 땐 반드시 같이 넣는다** |
+| `curated_availability` | 한 줄 텍스트 · `null` | 전 매장에서 팔지 않을 때의 안내. **화면에 그대로 나온다** (카드 "일부 매장" 뱃지 · 상세 📍 한 줄) |
 | `curated_hidden` | `true` · `false` | `true` 면 판매 중이어도 홈·상세 어디에도 안 나온다 |
 | `curated_note` | 자유 텍스트 | 왜 고쳤는지 메모. 화면에 나오지 않는다 |
 
@@ -43,6 +44,7 @@
 |---|---|
 | `2026-09-22_release_dates.sql` | 백필로 들어온 신메뉴 23묶음의 출시일 (보도자료 근거, 44행) |
 | `2026-09-22_prices.sql` | 맥도날드 3건 가격 (보도자료). 맘스터치 6건은 웹에 없어 템플릿만 |
+| `2026-09-22_availability.sql` | 맘스터치 6건 취급 한정 안내 (비프버거 판매점 한정 · 한정 수량) |
 
 ## 검토 루프
 
@@ -173,6 +175,18 @@ select count(*) filter (where photo_path is not null) as with_photo, count(*) as
 ```
 
 사진은 `record-photos` 비공개 버킷에 `{client_id}/{record_id}.jpg` 로 있다. 대시보드 Storage 에서 볼 수 있고, 공개 전환·대표 이미지 승격은 사용자 이용 허락 문구(업로드 시 고지) 범위 안에서만.
+
+## 전 매장에서 팔지 않을 때
+
+브랜드 사이트에 있다고 전 매장에서 파는 게 아니다. 모르고 가면 **헛걸음**이 되므로, 틀린 정보보다 나쁜 종류로 보고 화면에 밝힌다.
+
+- 보도자료에 "일부 매장", "○○개 매장", "한정 수량" 같은 단서가 있으면 `curated_availability` 에 한 줄로 넣는다
+- 문구는 사용자 말로 쓴다. "비프버거 판매점에서만 팔아요 (전국 1,000여 곳)" 처럼 — 내부 용어나 매장 수 코드가 아니라
+- 브랜드 앱에서 안 보이는 메뉴가 있으면 이 경우를 의심한다. 앱은 매장을 먼저 고르게 하고, 미취급점이면 메뉴가 나오지 않는다
+
+```sql
+select brand, name, curated_availability from menus where curated_availability is not null;
+```
 
 ## 가격을 넣을 때
 

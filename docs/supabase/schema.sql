@@ -53,6 +53,7 @@ create table public.menus (
   curated_price_single integer check (curated_price_single is null or curated_price_single > 0),  -- 맥도날드·맘스터치는 웹에 가격이 없다
   curated_price_set    integer check (curated_price_set    is null or curated_price_set    > 0),
   curated_price_checked date,                                                                      -- 확인한 날. 화면의 "9월 기준"
+  curated_availability text,                                                                       -- "일부 매장만 판매" 등. 전 매장이 아닐 때
   curated_hidden       boolean not null default false,                                             -- 판매 중이어도 사이트 전체에서 숨김
   curated_note         text,                                                                       -- 운영 메모. 화면 비노출
 

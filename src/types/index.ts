@@ -48,6 +48,7 @@ export interface Menu {
   curated_price_single: number | null;
   curated_price_set: number | null;
   curated_price_checked: string | null;
+  curated_availability: string | null;
   curated_hidden: boolean;
   curated_note: string | null;
 

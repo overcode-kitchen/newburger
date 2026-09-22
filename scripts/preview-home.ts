@@ -56,10 +56,11 @@ function formatGroup(g: MenuGroup): string {
   const priceMark = ep.source === "curated" ? (isPriceStale(ep) ? " [가격 확인 필요]" : ` [가격 ${ep.checkedOn ?? "?"}]`) : "";
   const price = [won(ep.single), ...setParts].join(" · ") + priceMark;
   const until = rep.end_date ? ` ~${rep.end_date}` : "";
+  const avail = rep.curated_availability ? `  [${rep.curated_availability}]` : "";
   const dateSrc = rep.curated_release_date ? "큐레이션" : rep.release_date ? "브랜드" : rep.reactivated_at ? "재출시" : g.date ? "확인일" : "-";
   return [
     `${(g.date ?? "----------").padEnd(10)}  ${BRAND_LABELS[g.brand].padEnd(4)}  ${g.name}`,
-    `${"".padEnd(12)}${flags.padEnd(12)} ${price}${until}  [${dateSrc}] 행 ${g.members.length}`,
+    `${"".padEnd(12)}${flags.padEnd(12)} ${price}${until}${avail}  [${dateSrc}] 행 ${g.members.length}`,
   ].join("\n");
 }
 

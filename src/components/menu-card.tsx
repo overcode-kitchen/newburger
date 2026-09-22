@@ -66,6 +66,14 @@ export function MenuCard({ group, variant = "grid", priority = false, recordCoun
         ) : (
           <span />
         )}
+        {!menu.end_date && menu.curated_availability && (
+          <Badge
+            variant="outline"
+            className="border-black/15 bg-white/85 text-xs font-medium text-muted-foreground backdrop-blur-sm"
+          >
+            일부 매장
+          </Badge>
+        )}
         {menu.end_date && (
           <Badge
             variant={endingSoon ? "default" : "outline"}
