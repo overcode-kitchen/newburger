@@ -1,2 +1,14 @@
+# 설치 시 스크립트 실행을 허용하는 패키지. pnpm 은 미승인 스크립트가 있으면 매 install 마다
+# "Ignored build scripts" 경고를 내는데, ignoredBuiltDependencies 로는 집계에서 빠지지 않아
+# 경고를 없애려면 여기에 올려야 한다. 세 패키지 모두 스크립트 내용을 확인했다.
+#   esbuild ← tsx (pnpm crawl 등) : 플랫폼 바이너리 확인, @esbuild/* 있으면 no-op
+#   sharp   ← next (이미지 최적화) : install/check.js 로 사전 빌드 바이너리 확인
+#   msw     ← shadcn (CLI 목킹)   : 오류를 삼키는 배너 스크립트
+onlyBuiltDependencies:
+  - esbuild
+  - msw
+  - sharp
+
+# 스크립트가 있어도 돌릴 필요가 없다고 판단한 패키지 (기록용)
 ignoredBuiltDependencies:
   - unrs-resolver
