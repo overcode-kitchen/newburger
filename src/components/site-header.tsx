@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LogoMark } from "@/components/logo-mark";
 
 interface SiteHeaderProps {
   /** 오른쪽 자리. 갱신 시각·기록 아이콘 등 */
@@ -10,9 +11,9 @@ interface SiteHeaderProps {
 export function SiteHeader({ right }: SiteHeaderProps) {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 pb-1 pt-3 sm:px-6 lg:px-8">
-      <Link href="/" className="text-xl font-bold tracking-tight">
+      <Link href="/" className="flex items-center gap-1.5 text-xl font-bold tracking-tight">
+        <LogoMark />
         뉴버거
-        <span className="ml-0.5 inline-block size-2 rounded-full bg-primary align-[2px]" aria-hidden />
       </Link>
       <div className="flex items-center gap-2">{right}</div>
     </header>

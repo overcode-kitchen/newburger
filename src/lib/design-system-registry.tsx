@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BrandChips } from "@/components/brand-chips";
 import { BrandMark } from "@/components/brand-mark";
+import { LogoMark } from "@/components/logo-mark";
 import { MenuCard } from "@/components/menu-card";
 import { RecordButton } from "@/components/record-button";
 import { ErrorState } from "@/components/error-state";
@@ -172,6 +173,22 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
         description="잠시 후 다시 시도해 주세요. 계속 반복되면 데이터 연결 상태를 확인해 주세요."
         digest="a1b2c3d4"
       />
+    ),
+  },
+  {
+    name: "LogoMark",
+    sourcePath: "src/components/logo-mark.tsx",
+    notes: "뉴버거 심볼. 높이 클래스만 주면 폭은 비율대로. 헤더에서는 h-7 + '뉴버거' 글자(text-xl bold)로 쓴다. 번 주황은 로고 전용 색",
+    render: () => (
+      <div className="flex flex-wrap items-end gap-6">
+        <LogoMark className="h-16" />
+        <LogoMark />
+        <LogoMark className="h-4" />
+        <span className="flex items-center gap-1.5 text-xl font-bold tracking-tight">
+          <LogoMark />
+          뉴버거
+        </span>
+      </div>
     ),
   },
   {
