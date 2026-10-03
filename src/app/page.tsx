@@ -41,11 +41,7 @@ export default async function Home({ searchParams }: HomeProps) {
           </>
         }
       />
-      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-12 sm:px-6 lg:px-8">
-        <p className="pb-3 text-sm text-muted-foreground">
-          4개 브랜드 신버거를 모아 보는 비공식 서비스 · 매일 아침 갱신
-        </p>
-
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-12 pt-3 sm:px-6 lg:px-8">
         {!hasSupabaseEnv && (
           <div className="mb-4 rounded-2xl border border-dashed border-border bg-muted/80 p-4 text-sm text-muted-foreground">
             Supabase 환경변수가 비어있습니다. `.env.local` 값을 채운 뒤 다시 새로고침해 주세요.

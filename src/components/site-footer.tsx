@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** 비공식 고지. 첫 화면 한 줄(홈 상단)과 함께 정책상 필수 — docs/legal/brand-mark-policy.md */
+/** 비공식 고지. 홈 상단 한 줄을 뺀 뒤로는 홈에서 고지가 여기 하나뿐이다 — docs/legal/brand-mark-policy.md */
 export function SiteFooter() {
   return (
     <footer className="mx-auto w-full max-w-6xl px-4 pb-8 pt-6 text-xs leading-relaxed text-muted-foreground sm:px-6 lg:px-8">
