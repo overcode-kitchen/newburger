@@ -16,7 +16,7 @@ export function LogoMark({ className }: LogoMarkProps) {
       width="578"
       height="492"
       aria-hidden
-      className={cn("h-7 w-auto shrink-0", className)}
+      className={cn("h-6 w-auto shrink-0", className)}
     >
       <path
         className="fill-logo-bun"

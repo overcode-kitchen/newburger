@@ -77,12 +77,24 @@ export const getLastCrawledAt = cache(async (): Promise<string | null> => {
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("crawl_status").select("*").eq("status", "ok");
-  // 뷰가 아직 없는 DB 에서도 홈은 떠야 한다. 갱신 시각만 비운다
-  if (error) return null;
+  // 뷰가 아직 없는 DB 에서는 수집기가 메뉴를 마지막으로 본 시각으로 대신한다 — 헤더 오른쪽이 비지 않게
+  if (error) return getLastSeenAt();
 
   const times = ((data ?? []) as CrawlStatus[]).map((r) => r.finished_at).filter((t): t is string => t !== null);
   return times.length > 0 ? times.sort().at(-1) ?? null : null;
 });
+
+async function getLastSeenAt(): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("menus")
+    .select("last_seen_at")
+    .order("last_seen_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  return (data as Pick<Menu, "last_seen_at">).last_seen_at;
+}
 
 export interface MenuGroupLookup {
   group: MenuGroup;

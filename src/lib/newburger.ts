@@ -107,18 +107,31 @@ export function formatMonthDay(dateValue: string): string {
   return `${Number(m)}/${Number(d)}`;
 }
 
-/** "2026-09-18T07:02:11Z" → "9.18 07:02". 서울 기준 — 배포 환경(UTC)에서 9시간 어긋나지 않게 */
-export function formatCrawledAt(iso: string): string {
+function seoulParts(date: Date) {
   const parts = new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul",
+    year: "numeric",
     month: "numeric",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).formatToParts(new Date(iso));
+  }).formatToParts(date);
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("month")}.${get("day")} ${get("hour")}:${get("minute")}`;
+  return { day: `${get("year")}-${get("month")}-${get("day")}`, md: `${get("month")}.${get("day")}`, hm: `${get("hour")}:${get("minute")}` };
+}
+
+/**
+ * 수집 시각을 사람 말로. 오늘이면 "오늘 07:02", 어제면 "어제 07:02", 그 전은 "9.18 07:02".
+ * 서울 기준 — 배포 환경(UTC)에서 날짜가 하루 어긋나지 않게
+ */
+export function formatCrawledAt(iso: string, now: Date = new Date()): { label: string; isToday: boolean } {
+  const at = seoulParts(new Date(iso));
+  const today = seoulParts(now);
+  const yesterday = seoulParts(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+  if (at.day === today.day) return { label: `오늘 ${at.hm}`, isToday: true };
+  if (at.day === yesterday.day) return { label: `어제 ${at.hm}`, isToday: false };
+  return { label: `${at.md} ${at.hm}`, isToday: false };
 }
 
 export function formatDate(dateValue: string | null): string {

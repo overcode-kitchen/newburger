@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BrandChips } from "@/components/brand-chips";
 import { BrandMark } from "@/components/brand-mark";
+import { FreshnessPill } from "@/components/freshness-pill";
 import { LogoMark } from "@/components/logo-mark";
 import { MenuCard } from "@/components/menu-card";
 import { RecordButton } from "@/components/record-button";
@@ -178,16 +179,28 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
   {
     name: "LogoMark",
     sourcePath: "src/components/logo-mark.tsx",
-    notes: "뉴버거 심볼. 높이 클래스만 주면 폭은 비율대로. 헤더에서는 h-7 + '뉴버거' 글자(text-xl bold)로 쓴다. 번 주황은 로고 전용 색",
+    notes: "뉴버거 심볼. 높이 클래스만 주면 폭은 비율대로. 헤더에서는 기본 h-6 + '뉴버거' 글자(text-lg extrabold)로 쓴다. 번 주황은 로고 전용 색",
     render: () => (
       <div className="flex flex-wrap items-end gap-6">
         <LogoMark className="h-16" />
         <LogoMark />
         <LogoMark className="h-4" />
-        <span className="flex items-center gap-1.5 text-xl font-bold tracking-tight">
+        <span className="flex items-center gap-1.5 text-lg font-extrabold tracking-tight">
           <LogoMark />
           뉴버거
         </span>
+      </div>
+    ),
+  },
+  {
+    name: "FreshnessPill",
+    sourcePath: "src/components/freshness-pill.tsx",
+    notes: "헤더 오른쪽 신선도 칩. 오늘/어제/날짜로 말하고, 오늘이면 초록 점. crawl_status 가 없으면 menus.last_seen_at 으로 대신한다",
+    render: () => (
+      <div className="flex flex-wrap items-center gap-3">
+        <FreshnessPill at="2026-10-03T00:21:00Z" now={new Date("2026-10-03T03:00:00Z")} />
+        <FreshnessPill at="2026-10-02T00:21:00Z" now={new Date("2026-10-03T03:00:00Z")} />
+        <FreshnessPill at="2026-09-28T00:21:00Z" now={new Date("2026-10-03T03:00:00Z")} />
       </div>
     ),
   },

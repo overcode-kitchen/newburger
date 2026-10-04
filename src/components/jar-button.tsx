@@ -15,7 +15,7 @@ export function JarButton({ stickers }: { stickers: JarSticker[] }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`내 병, 기록 ${stickers.length}개`}
-        className="inline-flex items-center gap-1 rounded-full bg-accent py-1 pl-1.5 pr-2.5 text-xs font-semibold text-foreground"
+        className="inline-flex h-8 items-center gap-1 rounded-full bg-accent pl-1.5 pr-2.5 text-xs font-semibold text-foreground"
       >
         <BurgerIcon />
         <span className="tabular-nums">{stickers.length}</span>

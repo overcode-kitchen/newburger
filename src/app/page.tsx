@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { BrandChips } from "@/components/brand-chips";
+import { FreshnessPill } from "@/components/freshness-pill";
 import { HeaderJar } from "@/components/header-jar";
 import { MenuCard } from "@/components/menu-card";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getHomeSections, getLastCrawledAt, hasSupabaseEnv } from "@/lib/menu-data";
-import { BRAND_LABELS, formatCrawledAt, parseBrand } from "@/lib/newburger";
+import { BRAND_LABELS, parseBrand } from "@/lib/newburger";
 import { countGroupRecords, getRecordStats } from "@/lib/records";
 
 interface HomeProps {
@@ -32,11 +33,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <SiteHeader
         right={
           <>
-            {crawledAt && (
-              <span className="font-mono text-xs text-muted-foreground" title="마지막 수집 시각">
-                {formatCrawledAt(crawledAt)} 갱신
-              </span>
-            )}
+            {crawledAt && <FreshnessPill at={crawledAt} />}
             <HeaderJar />
           </>
         }
