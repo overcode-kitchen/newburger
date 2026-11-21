@@ -2,7 +2,7 @@
   "defaults": {
     "canvasWidth": 1200,
     "canvasHeight": 1200,
-    "background": "#f7f3ed",
+    "background": "#FFFDF7",
     "occupancy": 0.72,
     "minScale": 0.75,
     "maxScale": 1.6,

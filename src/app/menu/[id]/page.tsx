@@ -1,46 +1,17 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
+import { MenuDetailHero } from "@/components/menu-detail-hero";
 import { ReviewRatingInput } from "@/components/review-rating-input";
 import { ShareButton } from "@/components/share-button";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { getMenuById, getReviewsByMenuId, hasSupabaseEnv } from "@/lib/menu-data";
-import {
-  BRAND_LABELS,
-  BRAND_LOGOS,
-  formatDate,
-  formatPrice,
-  isNewMenu,
-} from "@/lib/newburger";
-import { cn } from "@/lib/utils";
-import type { MenuWithStats } from "@/types";
+import { formatDate, formatPrice } from "@/lib/newburger";
+
 import { createReview } from "./actions";
 
 interface MenuDetailPageProps {
   params: Promise<{ id: string }>;
-}
-
-function MenuDetailBrandChip({ brand }: { brand: MenuWithStats["brand"] }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-black/15 sm:max-w-56",
-        "bg-white/85 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm",
-      )}
-    >
-      <Image
-        src={BRAND_LOGOS[brand].src}
-        alt=""
-        width={BRAND_LOGOS[brand].width}
-        height={BRAND_LOGOS[brand].height}
-        className="h-3 w-auto shrink-0 opacity-90"
-        aria-hidden
-      />
-      <span className="truncate">{BRAND_LABELS[brand]}</span>
-    </span>
-  );
 }
 
 function formatPriceLabel(price: number | null | undefined): string {
@@ -68,58 +39,15 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
 
   if (!menu) return notFound();
 
-  const imageSrc = menu.image_url?.trim() ?? "";
-  const hasImage = imageSrc.length > 0;
-
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <Link href="/" className="mb-4 inline-block text-sm text-muted-foreground hover:underline">
         ← 홈으로
       </Link>
 
-      <Card className="overflow-hidden rounded-3xl border-border/70">
-        <div className="relative aspect-[4/3] bg-muted sm:aspect-[16/9]">
-          {hasImage ? (
-            <Image
-              src={imageSrc}
-              alt={menu.name}
-              fill
-              sizes="(max-width: 768px) 100vw, 1200px"
-              className="object-cover object-center"
-              priority
-            />
-          ) : (
-            <div className="absolute inset-0 bg-muted" aria-hidden />
-          )}
+      <MenuDetailHero menu={menu} />
 
-          <div className="absolute left-0 right-0 top-0 z-30 flex items-start justify-end gap-1 p-4">
-            {menu.is_limited && (
-              <Badge
-                variant="outline"
-                className="border-black/20 bg-white/85 text-xs text-foreground backdrop-blur-sm"
-              >
-                한정
-              </Badge>
-            )}
-            {isNewMenu(menu.release_date) && (
-              <Badge className="border-black/10 bg-white/95 text-xs text-foreground">NEW</Badge>
-            )}
-          </div>
-
-          <div className="absolute inset-x-0 bottom-0 z-30 space-y-3 bg-gradient-to-t from-background/92 via-background/55 to-transparent p-5 pt-20 sm:p-6 sm:pt-24">
-            <MenuDetailBrandChip brand={menu.brand} />
-            <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-              {menu.name}
-            </h1>
-            {menu.description ? (
-              <p className="max-w-3xl text-sm leading-relaxed text-foreground/85">{menu.description}</p>
-            ) : null}
-            <p className="text-sm text-foreground/85">
-              ★ {menu.average_rating.toFixed(1)}
-              <span className="ml-1 text-muted-foreground">({menu.review_count})</span>
-            </p>
-          </div>
-        </div>
+      <Card className="mt-4 overflow-hidden rounded-3xl border-border/70">
         <CardContent className="space-y-6 p-5 sm:p-6">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Card className="rounded-2xl border-border/70 bg-muted/30">

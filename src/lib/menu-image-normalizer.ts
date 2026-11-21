@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
+import { CARD_SURFACE_HEX } from "@/lib/design-tokens";
 
 type Anchor = "top" | "center";
 
@@ -18,7 +19,7 @@ interface NormalizeConfig {
 const DEFAULT_CONFIG: NormalizeConfig = {
   canvasWidth: 1200,
   canvasHeight: 1200,
-  background: "#f7f3ed",
+  background: CARD_SURFACE_HEX,
   occupancy: 0.72,
   minScale: 0.75,
   maxScale: 1.6,
@@ -26,7 +27,8 @@ const DEFAULT_CONFIG: NormalizeConfig = {
   yOffsetRatio: 0,
 };
 
-const DEFAULT_MATT_RGBA = { r: 247, g: 243, b: 237, alpha: 1 };
+// CARD_SURFACE_HEX (#FFFDF7) 폴백 RGBA
+const DEFAULT_MATT_RGBA = { r: 255, g: 253, b: 247, alpha: 1 };
 
 function matteRgbaFromHex(hex: string): { r: number; g: number; b: number; alpha: number } {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
@@ -147,7 +149,7 @@ export async function normalizeFromStorage(rawPath: string): Promise<{
   }
 
   const normalizedBuffer = await normalizeImageBuffer(await rawData.arrayBuffer(), {
-    background: "#FFFFFF",
+    background: CARD_SURFACE_HEX,
   });
 
   const { error: uploadError } = await admin.storage

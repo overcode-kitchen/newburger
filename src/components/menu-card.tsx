@@ -57,9 +57,8 @@ export function MenuCard({
     <Link
       href={`/menu/${menu.id}`}
       className={cn(
-        "group relative block w-full overflow-hidden rounded-3xl shadow-sm ring-1 ring-border/60 transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20",
+        "group relative block w-full overflow-hidden rounded-3xl shadow-sm ring-1 ring-border/60 bg-card transition duration-300 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20",
         aspectClass,
-        imageFit === "contain" && hasImage ? "bg-menu-image-matte" : undefined,
       )}
     >
       {hasImage ? (
@@ -68,12 +67,7 @@ export function MenuCard({
           alt={menu.name}
           fill
           sizes={sizes}
-          className={cn(
-            "z-0",
-            fitClass,
-            positionClass,
-            imageFit === "contain" ? "bg-menu-image-matte" : undefined,
-          )}
+          className={cn("z-0", fitClass, positionClass)}
           priority={false}
         />
       ) : (
@@ -83,13 +77,15 @@ export function MenuCard({
         />
       )}
 
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 z-20",
-          OVERLAY_VARIANT_CLASS[overlayVariant],
-        )}
-        aria-hidden
-      />
+      {imageFit === "cover" ? (
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0 z-20",
+            OVERLAY_VARIANT_CLASS[overlayVariant],
+          )}
+          aria-hidden
+        />
+      ) : null}
 
       {(menu.is_limited || isNewMenu(menu.release_date)) && (
         <div className="absolute left-0 right-0 top-0 z-[25] flex items-start justify-end gap-1 p-3">

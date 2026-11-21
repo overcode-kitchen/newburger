@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { MenuCard } from "@/components/menu-card";
+import { MenuDetailHero } from "@/components/menu-detail-hero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,24 @@ const menuCardPreviewSample: MenuWithStats = {
   created_at: "2026-04-01T00:00:00.000Z",
   average_rating: 4.6,
   review_count: 128,
+};
+
+const menuDetailHeroSample: MenuWithStats = {
+  id: "00000000-0000-4000-8000-000000000002",
+  brand: "lotteria",
+  name: "통다리 크리스피 치킨버거 파이어 핫",
+  price_single: 6900,
+  price_set: 9400,
+  image_url: "/design-system/hero-sample-cream.png",
+  release_date: "2026-04-09",
+  end_date: null,
+  is_limited: true,
+  calories: 610,
+  official_link: null,
+  description: "통다리 크리스피 치킨 패티에 불맛 소스를 더한 스파이시 버거입니다.",
+  created_at: "2026-04-01T00:00:00.000Z",
+  average_rating: 4.4,
+  review_count: 52,
 };
 
 const menuCardVariantSamples: ReadonlyArray<{
@@ -154,6 +173,15 @@ export const designPreviewRegistry: DesignPreviewItem[] = [
           </div>
         ))}
       </div>
+    ),
+  },
+  {
+    name: "MenuDetailHero",
+    sourcePath: "src/components/menu-detail-hero.tsx",
+    notes:
+      "상세 페이지 히어로 카드. 카드/이미지 모두 bg-card(#FFFDF7) 통일. 정규화본도 같은 bg로 재업로드되어 seamless.",
+    render: () => (
+      <MenuDetailHero menu={menuDetailHeroSample} priority={false} />
     ),
   },
   {

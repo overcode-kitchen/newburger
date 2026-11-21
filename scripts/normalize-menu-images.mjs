@@ -42,7 +42,11 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-const DEFAULT_MATT_RGBA = { r: 247, g: 243, b: 237, alpha: 1 };
+// 디자인 토큰 미러 — `src/lib/design-tokens.ts`의 CARD_SURFACE_HEX 과 반드시 동기화.
+// 이 .mjs에서는 TS import가 안 돼 값만 복제한다.
+const CARD_SURFACE_HEX = "#FFFDF7";
+
+const DEFAULT_MATT_RGBA = { r: 255, g: 253, b: 247, alpha: 1 };
 
 function matteRgbaFromHex(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
@@ -99,7 +103,7 @@ async function normalizeImage(sourceBuffer, config) {
   const resizedWidth = Math.max(1, Math.round(baseWidth * scale));
   const resizedHeight = Math.max(1, Math.round(baseHeight * scale));
   const resized = await trimmed
-    .resize(resizedWidth, resizedHeight, { fit: "contain", background: "#FFFFFF" })
+    .resize(resizedWidth, resizedHeight, { fit: "contain", background: CARD_SURFACE_HEX })
     .toBuffer();
   const resizedMeta = await sharp(resized).metadata();
   const safeWidth = Math.min(canvasWidth, resizedMeta.width ?? resizedWidth);
